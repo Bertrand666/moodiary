@@ -4,10 +4,12 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:moodiary/common/models/isar/diary.dart';
 import 'package:moodiary/common/values/border.dart';
+import 'package:moodiary/common/values/diary_template.dart';
 import 'package:moodiary/common/values/diary_type.dart';
 import 'package:moodiary/components/base/image.dart';
 import 'package:moodiary/components/base/text.dart';
 import 'package:moodiary/components/diary_card/basic_card_logic.dart';
+import 'package:moodiary/l10n/l10n.dart';
 import 'package:moodiary/utils/file_util.dart';
 
 class CalendarDiaryCardComponent extends StatelessWidget with BasicCardLogic {
@@ -17,6 +19,26 @@ class CalendarDiaryCardComponent extends StatelessWidget with BasicCardLogic {
 
   @override
   Widget build(BuildContext context) {
+    final isChildhoodMemoir = diary.tags.contains(
+      DiaryTemplateConst.childhoodMemoirTag,
+    );
+
+    Widget buildMemoirBadge() {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
+        decoration: BoxDecoration(
+          color: context.theme.colorScheme.primaryContainer,
+          borderRadius: AppBorderRadius.smallBorderRadius,
+        ),
+        child: Text(
+          context.l10n.diaryChildhoodMemoirBadge,
+          style: context.textTheme.labelSmall?.copyWith(
+            color: context.theme.colorScheme.onPrimaryContainer,
+          ),
+        ),
+      );
+    }
+
     Widget buildImage() {
       return SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -68,12 +90,13 @@ class CalendarDiaryCardComponent extends StatelessWidget with BasicCardLogic {
                 Row(
                   spacing: 4.0,
                   children: [
-                    buildTime(),
+                    Expanded(child: buildTime()),
                     FaIcon(
                       DiaryType.fromValue(diary.type).icon,
                       size: 10,
                       color: context.theme.colorScheme.secondary,
                     ),
+                    if (isChildhoodMemoir) buildMemoirBadge(),
                   ],
                 ),
                 if (diary.title.isNotEmpty)

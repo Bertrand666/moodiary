@@ -1,8 +1,8 @@
-import 'dart:async';
-
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moodiary/common/values/diary_domain.dart';
+import 'package:moodiary/common/values/diary_template.dart';
 import 'package:moodiary/common/values/keyboard_state.dart';
 import 'package:moodiary/components/keyboard_listener/keyboard_listener.dart';
 import 'package:moodiary/persistence/isar.dart';
@@ -12,6 +12,7 @@ import 'package:throttling/throttling.dart';
 import 'search_sheet_state.dart';
 
 class SearchSheetLogic extends GetxController {
+  final DiaryDomain domain;
   final SearchSheetState state = SearchSheetState();
   late TextEditingController textEditingController = TextEditingController();
   late FocusNode focusNode = FocusNode();
@@ -22,9 +23,7 @@ class SearchSheetLogic extends GetxController {
     duration: const Duration(milliseconds: 500),
   );
 
-  String _lastText = '';
-
-  Timer? _timer;
+  SearchSheetLogic({required this.domain});
 
   @override
   void onInit() {
@@ -54,18 +53,6 @@ class SearchSheetLogic extends GetxController {
         await doSearch();
       });
     });
-
-    _timer = Timer.periodic(const Duration(milliseconds: 500), (_) async {
-      final currentText = textEditingController.text.trim();
-      if (currentText != _lastText) {
-        _lastText = currentText;
-        if (currentText.isNotBlank) {
-          await doSearch();
-        } else {
-          clear();
-        }
-      }
-    });
     super.onInit();
   }
 
@@ -75,8 +62,6 @@ class SearchSheetLogic extends GetxController {
     textEditingController.dispose();
     focusNode.dispose();
     _throttling.close();
-    _timer?.cancel();
-    _timer = null;
     super.onClose();
   }
 
@@ -92,19 +77,48 @@ class SearchSheetLogic extends GetxController {
     update();
   }
 
-  Future<void> doSearch() async {
+  Future<void> setChildhoodMemoirOnly(bool value) async {
+    state.childhoodMemoirOnly.value = value;
     final currentText = textEditingController.text.trim();
-    if (currentText == _lastText) {
+    if (currentText.isBlank && !value) {
+      clear();
       return;
     }
-    if (currentText.isBlank) {
+    await doSearch();
+  }
+
+  Future<void> doSearch() async {
+    final currentText = textEditingController.text.trim();
+    if (currentText.isBlank && !state.childhoodMemoirOnly.value) {
       clear();
       return;
     }
     state.isSearching.value = true;
-    _lastText = currentText;
-    final queryList = await JiebaRs.cutForSearch(text: _lastText, hmm: true);
-    state.searchList = await IsarUtil.searchDiaries(queryList: queryList);
+
+    if (currentText.isBlank) {
+      state.searchList = await IsarUtil.searchDiariesByTag(
+        DiaryTemplateConst.childhoodMemoirTag,
+        domain: domain,
+      );
+      state.queryList = [];
+      state.totalCount.value = state.searchList.length;
+      state.isSearching.value = false;
+      return;
+    }
+
+    final queryList = await JiebaRs.cutForSearch(text: currentText, hmm: true);
+    final searchList = await IsarUtil.searchDiaries(
+      queryList: queryList,
+      domain: domain,
+    );
+    state.searchList = state.childhoodMemoirOnly.value
+        ? searchList
+              .where(
+                (diary) =>
+                    diary.tags.contains(DiaryTemplateConst.childhoodMemoirTag),
+              )
+              .toList()
+        : searchList;
     state.totalCount.value = state.searchList.length;
     state.queryList = queryList;
     state.isSearching.value = false;

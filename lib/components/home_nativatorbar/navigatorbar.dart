@@ -64,6 +64,11 @@ class HomeNavigatorBar extends StatelessWidget {
                         selectedIcon: const Icon(Icons.article),
                       ),
                       NavigationDestination(
+                        icon: const Icon(Icons.auto_stories_outlined),
+                        label: context.l10n.homeNavigatorMemoir,
+                        selectedIcon: const Icon(Icons.auto_stories),
+                      ),
+                      NavigationDestination(
                         icon: const Icon(UniconsLine.calender),
                         label: context.l10n.homeNavigatorCalendar,
                         selectedIcon: const Icon(UniconsSolid.calender),

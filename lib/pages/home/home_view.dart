@@ -2,6 +2,8 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_adaptive_scaffold/flutter_adaptive_scaffold.dart';
 import 'package:get/get.dart';
+import 'package:moodiary/common/values/diary_domain.dart';
+import 'package:moodiary/common/values/diary_template.dart';
 import 'package:moodiary/common/values/diary_type.dart';
 import 'package:moodiary/components/base/modal.dart';
 import 'package:moodiary/components/desktop_wrapper/background.dart';
@@ -50,6 +52,15 @@ class HomePage extends StatelessWidget {
                                         ),
                                         label: context.l10n.homeNavigatorDiary,
                                         selectedIcon: const Icon(Icons.article),
+                                      ),
+                                      NavigationDestination(
+                                        icon: const Icon(
+                                          Icons.auto_stories_outlined,
+                                        ),
+                                        label: context.l10n.homeNavigatorMemoir,
+                                        selectedIcon: const Icon(
+                                          Icons.auto_stories,
+                                        ),
                                       ),
                                       NavigationDestination(
                                         icon: const Icon(UniconsLine.calender),
@@ -106,6 +117,13 @@ class HomePage extends StatelessWidget {
                                     type: DiaryType.richText,
                                   );
                                 },
+                                toChildhoodMemoir: () async {
+                                  await logic.toEditPage(
+                                    domain: DiaryDomain.memoir,
+                                    type: DiaryType.richText,
+                                    template: DiaryTemplate.childhoodMemoir,
+                                  );
+                                },
                               ),
                             ),
                             onDestinationSelected: logic.changeNavigator,
@@ -128,7 +146,8 @@ class HomePage extends StatelessWidget {
                         controller: logic.pageController,
                         physics: const NeverScrollableScrollPhysics(),
                         children: const [
-                          DiaryPage(),
+                          DiaryPage(domain: DiaryDomain.normal),
+                          DiaryPage(domain: DiaryDomain.memoir),
                           CalendarPage(),
                           MediaPage(),
                           SettingPage(),
@@ -164,6 +183,13 @@ class HomePage extends StatelessWidget {
         },
         toRichText: () async {
           await logic.toEditPage(type: DiaryType.richText);
+        },
+        toChildhoodMemoir: () async {
+          await logic.toEditPage(
+            domain: DiaryDomain.memoir,
+            type: DiaryType.richText,
+            template: DiaryTemplate.childhoodMemoir,
+          );
         },
         closeFab: logic.closeFab,
         openFab: logic.openFab,

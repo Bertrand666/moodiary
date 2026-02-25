@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moodiary/common/values/diary_domain.dart';
 import 'package:moodiary/pages/home/diary/diary_logic.dart';
 import 'package:moodiary/persistence/isar.dart';
 import 'package:moodiary/router/app_routes.dart';
@@ -7,8 +8,13 @@ import 'package:moodiary/router/app_routes.dart';
 import 'category_choice_sheet_state.dart';
 
 class CategoryChoiceSheetLogic extends GetxController {
+  final DiaryDomain domain;
   final CategoryChoiceSheetState state = CategoryChoiceSheetState();
-  late final DiaryLogic diaryLogic = Bind.find<DiaryLogic>();
+  late final DiaryLogic diaryLogic = Bind.find<DiaryLogic>(
+    tag: domain.logicTag,
+  );
+
+  CategoryChoiceSheetLogic({required this.domain});
 
   @override
   void onReady() async {
@@ -19,7 +25,9 @@ class CategoryChoiceSheetLogic extends GetxController {
   // 获取分类
   Future<void> getCategory() async {
     state.isFetching.value = true;
-    state.categoryList.value = await IsarUtil.getAllCategoryAsync();
+    state.categoryList.value = await IsarUtil.getAllCategoryAsync(
+      domain: domain,
+    );
     state.isFetching.value = false;
   }
 
@@ -30,6 +38,6 @@ class CategoryChoiceSheetLogic extends GetxController {
 
   void toCategoryManage(BuildContext context) {
     Navigator.pop(context);
-    Get.toNamed(AppRoutes.categoryManagerPage);
+    Get.toNamed(AppRoutes.categoryManagerPage, arguments: domain);
   }
 }

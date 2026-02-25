@@ -9,6 +9,8 @@ class SearchSheetState {
 
   late RxInt totalCount;
 
+  late RxBool childhoodMemoirOnly;
+
   RxDouble keyboardHeight = 0.0.obs;
 
   late List<String> queryList = [];
@@ -17,6 +19,7 @@ class SearchSheetState {
     searchList = [];
     isSearching = false.obs;
     totalCount = 0.obs;
+    childhoodMemoirOnly = false.obs;
 
     ///Initialize variables
   }

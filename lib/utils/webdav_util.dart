@@ -8,12 +8,12 @@ import 'package:get/get.dart';
 import 'package:moodiary/common/models/isar/category.dart';
 import 'package:moodiary/common/models/isar/diary.dart';
 import 'package:moodiary/common/values/webdav.dart';
-import 'package:moodiary/pages/home/diary/diary_logic.dart';
 import 'package:moodiary/persistence/isar.dart';
 import 'package:moodiary/persistence/pref.dart';
 import 'package:moodiary/persistence/secure_storage.dart';
 import 'package:moodiary/utils/aes_util.dart';
 import 'package:moodiary/utils/file_util.dart';
+import 'package:moodiary/utils/diary_logic_util.dart';
 import 'package:moodiary/utils/log_util.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
 
@@ -174,13 +174,11 @@ class WebDavUtil {
   Future<void> _deleteDiary(Diary diary) async {
     // 删除文件的通用方法
     Future<void> deleteFiles(List<String> names, String folder) async {
-      final tasks =
-          names
-              .map(
-                (name) =>
-                    FileUtil.deleteFile(FileUtil.getRealPath(folder, name)),
-              )
-              .toList();
+      final tasks = names
+          .map(
+            (name) => FileUtil.deleteFile(FileUtil.getRealPath(folder, name)),
+          )
+          .toList();
       await Future.wait(tasks);
     }
 
@@ -227,7 +225,7 @@ class WebDavUtil {
           await _deleteDiary(
             localDiaries.firstWhere((element) => element.id == diaryId),
           );
-          Bind.find<DiaryLogic>().refreshAll();
+          await DiaryLogicUtil.refreshAllDomains();
           syncingDiaries.remove(diaryId);
         }
         continue;
@@ -329,24 +327,18 @@ class WebDavUtil {
     syncingDiaries.add(newDiary.id);
     try {
       // 遍历删除日记资源文件
-      final needToDeleteImage =
-          oldDiary.imageName
-              .where((element) => !newDiary.imageName.contains(element))
-              .toList();
-      final needToDeleteAudio =
-          oldDiary.audioName
-              .where((element) => !newDiary.audioName.contains(element))
-              .toList();
-      final needToDeleteVideo =
-          oldDiary.videoName
-              .where((element) => !newDiary.videoName.contains(element))
-              .toList();
-      final needToDeleteThumbnail =
-          needToDeleteVideo
-              .map(
-                (videoName) => 'thumbnail-${videoName.substring(6, 42)}.jpeg',
-              )
-              .toList();
+      final needToDeleteImage = oldDiary.imageName
+          .where((element) => !newDiary.imageName.contains(element))
+          .toList();
+      final needToDeleteAudio = oldDiary.audioName
+          .where((element) => !newDiary.audioName.contains(element))
+          .toList();
+      final needToDeleteVideo = oldDiary.videoName
+          .where((element) => !newDiary.videoName.contains(element))
+          .toList();
+      final needToDeleteThumbnail = needToDeleteVideo
+          .map((videoName) => 'thumbnail-${videoName.substring(6, 42)}.jpeg')
+          .toList();
       await _deleteFiles(
         needToDeleteImage,
         '${WebDavOptions.imagePath}/${newDiary.id}',
@@ -410,8 +402,9 @@ class WebDavUtil {
 
     // 检查并上传分类
     if (diary.categoryId != null) {
-      final categoryName =
-          IsarUtil.getCategoryName(diary.categoryId!)?.categoryName;
+      final categoryName = IsarUtil.getCategoryName(
+        diary.categoryId!,
+      )?.categoryName;
       if (categoryName != null) {
         await _uploadCategory(diary.categoryId!, categoryName);
       }
@@ -419,8 +412,9 @@ class WebDavUtil {
     try {
       _client!.setHeaders({
         'accept-charset': 'utf-8',
-        'Content-Type':
-            shouldEncrypt ? 'application/octet-stream' : 'application/json',
+        'Content-Type': shouldEncrypt
+            ? 'application/octet-stream'
+            : 'application/json',
       });
       await _client!.write(diaryPath, diaryData);
       logger.d('Diary  uploaded: $diaryPath');
@@ -462,10 +456,9 @@ class WebDavUtil {
 
     for (var fileName in fileNames) {
       final filePath = FileUtil.getRealPath(type, fileName);
-      fileName =
-          type == 'thumbnail'
-              ? 'thumbnail-${fileName.substring(6, 42)}.jpeg'
-              : fileName;
+      fileName = type == 'thumbnail'
+          ? 'thumbnail-${fileName.substring(6, 42)}.jpeg'
+          : fileName;
       if (existingFiles.any((file) => file.name == fileName)) {
         logger.d('$type file already exists: $fileName');
         continue;
@@ -553,6 +546,7 @@ class WebDavUtil {
         await IsarUtil.updateACategory(
           Category()
             ..id = category['id']!
+            ..domain = diary.domain
             ..categoryName = category['name']!,
         );
       } catch (e) {
@@ -593,10 +587,9 @@ class WebDavUtil {
     final localFileNames = <String>[];
 
     for (final fileName in fileNames) {
-      final serverFilePath =
-          type == 'thumbnail'
-              ? '$resourcePath/thumbnail-${fileName.substring(6, 42)}.jpeg'
-              : '$resourcePath/$fileName';
+      final serverFilePath = type == 'thumbnail'
+          ? '$resourcePath/thumbnail-${fileName.substring(6, 42)}.jpeg'
+          : '$resourcePath/$fileName';
       final localFilePath = FileUtil.getRealPath(type, fileName);
 
       try {

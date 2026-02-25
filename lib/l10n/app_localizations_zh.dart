@@ -88,6 +88,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingFunctionCategoryManage => '分类管理';
 
   @override
+  String get memoirCategoryManageTitle => '回忆录分类管理';
+
+  @override
   String get settingFunctionAnalysis => '分析统计';
 
   @override
@@ -346,6 +349,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get homeNavigatorDiary => '日记';
 
   @override
+  String get homeNavigatorMemoir => '回忆录';
+
+  @override
   String get homeNavigatorCalendar => '日历';
 
   @override
@@ -359,6 +365,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get homePageAddDiaryButton => '新建日记';
+
+  @override
+  String get homeNewDiaryChildhoodMemoir => '童年回忆录';
 
   @override
   String get homeNewDiaryRichText => '富文本';
@@ -648,9 +657,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diarySearch => '搜索';
 
   @override
+  String get diarySearchOnlyChildhoodMemoir => '仅看童年回忆录';
+
+  @override
   String diarySearchResult(Object count) {
     return '共有 $count 篇';
   }
+
+  @override
+  String get diaryChildhoodMemoirBadge => '回忆录';
 
   @override
   String get webdavDashboardSetting => 'WebDAV 设置';
@@ -786,6 +801,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get editChangeSuccess => '修改成功';
+
+  @override
+  String get editTemplateChildhoodTitle => '我的童年回忆录';
+
+  @override
+  String get editTemplateChildhoodContent =>
+      '幼儿时期（3-6岁）\n你最早记得的一件事是什么？\n那时最依赖的人是谁？\n\n小学时期（7-12岁）\n最难忘的老师或同学是谁？\n哪次考试或活动让你印象最深？\n\n初中时期（13-15岁）\n你当时最在意的事情是什么？\n有没有一次让你改变看法的经历？\n\n高中时期（16-18岁）\n你第一次认真思考未来是什么时候？\n那时的你和现在最大的不同是什么？\n\n我的总结\n回看这段童年经历，你想对当时的自己说什么？';
 
   @override
   String get locationError => '定位失败';

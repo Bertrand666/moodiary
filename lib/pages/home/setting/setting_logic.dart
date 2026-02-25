@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:moodiary/common/values/diary_domain.dart';
 import 'package:moodiary/components/dashboard/dashboard_logic.dart';
 import 'package:moodiary/pages/home/diary/diary_logic.dart';
 import 'package:moodiary/pages/home/home_logic.dart';
@@ -91,7 +92,10 @@ class SettingLogic extends GetxController {
 
   Future<void> toCategoryManager() async {
     HapticFeedback.selectionClick();
-    await Get.toNamed(AppRoutes.categoryManagerPage);
+    await Get.toNamed(
+      AppRoutes.categoryManagerPage,
+      arguments: DiaryDomain.normal,
+    );
     Bind.find<DashboardLogic>().getCategoryCount();
   }
 
@@ -130,7 +134,11 @@ class SettingLogic extends GetxController {
     state.customTitle = title.trim();
     update(['CustomTitle']);
     await PrefUtil.setValue<String>('customTitleName', state.customTitle);
-    Bind.find<DiaryLogic>().updateTitle();
+    for (final domain in DiaryDomain.values) {
+      if (Bind.isRegistered<DiaryLogic>(tag: domain.logicTag)) {
+        Bind.find<DiaryLogic>(tag: domain.logicTag).updateTitle();
+      }
+    }
   }
 
   Future<bool> setUserKey({required String key}) async {

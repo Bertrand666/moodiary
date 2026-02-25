@@ -11,6 +11,8 @@ import 'package:moodiary/common/models/isar/diary.dart';
 import 'package:moodiary/common/models/isar/font.dart';
 import 'package:moodiary/common/models/isar/sync_record.dart';
 import 'package:moodiary/common/models/map.dart';
+import 'package:moodiary/common/values/diary_domain.dart';
+import 'package:moodiary/common/values/diary_template.dart';
 import 'package:moodiary/common/values/diary_type.dart';
 import 'package:moodiary/components/base/text.dart';
 import 'package:moodiary/components/quill_embed/audio_embed.dart';
@@ -41,10 +43,12 @@ class IsarUtil {
       directory: path,
       name: 'old',
     );
-    final List<Diary> oldDiaryList =
-        await oldIsar.diarys.where().findAllAsync();
-    final List<Category> oldCategoryList =
-        await oldIsar.categorys.where().findAllAsync();
+    final List<Diary> oldDiaryList = await oldIsar.diarys
+        .where()
+        .findAllAsync();
+    final List<Category> oldCategoryList = await oldIsar.categorys
+        .where()
+        .findAllAsync();
     final List<Font> oldFontList = await oldIsar.fonts.where().findAllAsync();
 
     await _isar.writeAsync((isar) {
@@ -54,6 +58,40 @@ class IsarUtil {
       isar.fonts.putAll(oldFontList);
     });
     oldIsar.close(deleteFromDisk: true);
+  }
+
+  static bool _isMemoirDiary(Diary diary) {
+    return diary.tags.contains(DiaryTemplateConst.childhoodMemoirTag);
+  }
+
+  static bool _matchDiaryDomain(Diary diary, DiaryDomain? domain) {
+    if (domain == null) return true;
+    final isMemoir = _isMemoirDiary(diary);
+    return domain == DiaryDomain.memoir ? isMemoir : !isMemoir;
+  }
+
+  static Diary _hydrateDiaryDomain(Diary diary) {
+    diary.domain = _isMemoirDiary(diary)
+        ? DiaryDomain.memoir.value
+        : DiaryDomain.normal.value;
+    return diary;
+  }
+
+  static bool _isMemoirCategory(Category category) {
+    return category.id.startsWith('memoir_') ||
+        category.domain == DiaryDomain.memoir.value;
+  }
+
+  static bool _matchCategoryDomain(Category category, DiaryDomain domain) {
+    final isMemoir = _isMemoirCategory(category);
+    return domain == DiaryDomain.memoir ? isMemoir : !isMemoir;
+  }
+
+  static Category _hydrateCategoryDomain(Category category) {
+    category.domain = _isMemoirCategory(category)
+        ? DiaryDomain.memoir.value
+        : DiaryDomain.normal.value;
+    return category;
   }
 
   //清空数据
@@ -80,6 +118,7 @@ class IsarUtil {
 
   //插入一条日记
   static Future<void> insertADiary(Diary diary) async {
+    _normalizeDiaryDomainTag(diary);
     await _isar.writeAsync((isar) {
       isar.diarys.put(diary);
     });
@@ -87,17 +126,20 @@ class IsarUtil {
 
   //根据月份获取日记
   static Future<List<Diary>> getDiaryByMonth(int year, int month) async {
-    return await _isar.diarys
+    final diaries = await _isar.diarys
         .where()
         .showEqualTo(true)
         .yMEqualTo('${year.toString()}/${month.toString()}')
         .sortByTimeDesc()
         .findAllAsync();
+    return diaries.map(_hydrateDiaryDomain).toList();
   }
 
   //根据id获取日记
   static Future<Diary?> getDiaryByID(int isarId) async {
-    return await _isar.diarys.getAsync(isarId);
+    final diary = await _isar.diarys.getAsync(isarId);
+    if (diary == null) return null;
+    return _hydrateDiaryDomain(diary);
   }
 
   //根据日期范围获取日记
@@ -106,55 +148,70 @@ class IsarUtil {
     DateTime end, {
     bool all = true,
   }) async {
-    return await _isar.diarys
+    final diaries = await _isar.diarys
         .where()
         .timeBetween(start, end)
         .showEqualTo(all)
         .findAllAsync();
+    return diaries.map(_hydrateDiaryDomain).toList();
   }
 
   //获取全部日记
   static Future<List<Diary>> getAllDiaries() async {
-    return await _isar.diarys.where().findAllAsync();
+    final diaries = await _isar.diarys.where().findAllAsync();
+    return diaries.map(_hydrateDiaryDomain).toList();
   }
 
   /// 获取全部日记
   static Future<List<Diary>> getAllDiariesSorted() async {
-    return _isar.diarys
+    final diaries = await _isar.diarys
         .where()
         .showEqualTo(true)
         .sortByTimeDesc()
         .findAllAsync();
+    return diaries.map(_hydrateDiaryDomain).toList();
   }
 
   //获取指定范围内的天气
   static Future<List<List<String>>> getWeatherByDateRange(
     DateTime start,
-    DateTime end,
-  ) async {
-    return (await _isar.diarys
-            .where()
-            .showEqualTo(true)
-            .timeBetween(start, end)
-            .distinctByYMd()
-            .weatherProperty()
-            .findAllAsync())
-        .cast<List<String>>();
+    DateTime end, {
+    DiaryDomain? domain,
+  }) async {
+    final diaries = await _isar.diarys
+        .where()
+        .showEqualTo(true)
+        .timeBetween(start, end)
+        .sortByTime()
+        .findAllAsync();
+
+    final weatherByDay = <String, List<String>>{};
+    for (final diary in diaries) {
+      if (!_matchDiaryDomain(diary, domain)) continue;
+      weatherByDay.putIfAbsent(diary.yMd, () => diary.weather);
+    }
+    return weatherByDay.values.toList();
   }
 
   //获取指定范围的心情指数
   static Future<List<double>> getMoodByDateRange(
     DateTime start,
-    DateTime end,
-  ) async {
-    return (await _isar.diarys
-            .where()
-            .showEqualTo(true)
-            .timeBetween(start, end)
-            .distinctByYMd()
-            .moodProperty()
-            .findAllAsync())
-        .cast<double>();
+    DateTime end, {
+    DiaryDomain? domain,
+  }) async {
+    final diaries = await _isar.diarys
+        .where()
+        .showEqualTo(true)
+        .timeBetween(start, end)
+        .sortByTime()
+        .findAllAsync();
+
+    final moodByDay = <String, double>{};
+    for (final diary in diaries) {
+      if (!_matchDiaryDomain(diary, domain)) continue;
+      moodByDay.putIfAbsent(diary.yMd, () => diary.mood);
+    }
+    return moodByDay.values.toList();
   }
 
   //删除某篇日记
@@ -166,11 +223,12 @@ class IsarUtil {
 
   //回收站日记
   static Future<List<Diary>> getRecycleBinDiaries() async {
-    return await _isar.diarys
+    final diaries = await _isar.diarys
         .where()
         .showEqualTo(false)
         .sortByTimeDesc()
         .findAllAsync();
+    return diaries.map(_hydrateDiaryDomain).toList();
   }
 
   //更新日记
@@ -179,6 +237,7 @@ class IsarUtil {
     required Diary newDiary,
   }) async {
     // 如果没有旧日记，说明是新增日记
+    _normalizeDiaryDomainTag(newDiary);
     newDiary.lastModified = DateTime.now();
     await _isar.writeAsync((isar) {
       isar.diarys.put(newDiary);
@@ -204,8 +263,28 @@ class IsarUtil {
     }
   }
 
+  static void _normalizeDiaryDomainTag(Diary diary) {
+    final hasMemoirTag = diary.tags.contains(
+      DiaryTemplateConst.childhoodMemoirTag,
+    );
+    final domain = hasMemoirTag
+        ? DiaryDomain.memoir
+        : DiaryDomain.fromValue(diary.domain);
+    diary.domain = domain.value;
+    if (domain == DiaryDomain.memoir) {
+      if (!hasMemoirTag) {
+        diary.tags.add(DiaryTemplateConst.childhoodMemoirTag);
+      }
+    } else {
+      diary.tags.removeWhere(
+        (tag) => tag == DiaryTemplateConst.childhoodMemoirTag,
+      );
+    }
+  }
+
   static Future<List<Diary>> searchDiaries({
     required List<String> queryList,
+    DiaryDomain? domain,
   }) async {
     if (queryList.isEmpty) return [];
 
@@ -220,30 +299,40 @@ class IsarUtil {
     );
 
     for (final word in queryList) {
-      final matches =
-          await _isar.diarys
-              .where()
-              .showEqualTo(true)
-              .tokenizerElementMatches(word, caseSensitive: false)
-              .or()
-              .titleContains(word, caseSensitive: false)
-              .findAllAsync();
+      final matches = await _isar.diarys
+          .where()
+          .showEqualTo(true)
+          .tokenizerElementMatches(word, caseSensitive: false)
+          .or()
+          .titleContains(word, caseSensitive: false)
+          .findAllAsync();
       results.addAll(matches);
     }
 
     // 按时间降序排序
     final List<Diary> sortedResults =
-        results.toList()..sort((a, b) => b.time.compareTo(a.time));
+        results
+            .where((diary) => _matchDiaryDomain(diary, domain))
+            .map(_hydrateDiaryDomain)
+            .toList()
+          ..sort((a, b) => b.time.compareTo(a.time));
 
     return sortedResults;
   }
 
-  static Future<List<Diary>> searchDiariesByTag(String value) async {
-    return await _isar.diarys
+  static Future<List<Diary>> searchDiariesByTag(
+    String value, {
+    DiaryDomain? domain,
+  }) async {
+    final diaries = await _isar.diarys
         .where()
         .showEqualTo(true)
         .tagsElementContains(value)
         .findAllAsync();
+    return diaries
+        .where((diary) => _matchDiaryDomain(diary, domain))
+        .map(_hydrateDiaryDomain)
+        .toList();
   }
 
   //获取不在回收站的日记总数
@@ -256,8 +345,13 @@ class IsarUtil {
   }
 
   //获取分类总数
-  static int countCategories() {
-    return _isar.categorys.count();
+  static int countCategories({DiaryDomain? domain}) {
+    if (domain == null) return _isar.categorys.count();
+    return _isar.categorys
+        .where()
+        .findAll()
+        .where((category) => _matchCategoryDomain(category, domain))
+        .length;
   }
 
   //获取分类名称
@@ -266,21 +360,30 @@ class IsarUtil {
   }
 
   // 插入一个分类
-  static Future<bool> insertACategory(Category category) async {
+  static Future<bool> insertACategory(
+    Category category, {
+    DiaryDomain domain = DiaryDomain.normal,
+  }) async {
     return await _isar.writeAsync((isar) {
       // 查询数据库中是否有同名但 ID 不同的分类
-      final existingCategory =
-          isar.categorys
-              .where()
-              .categoryNameEqualTo(category.categoryName)
-              .findFirst();
-      if (existingCategory != null && existingCategory.id != category.id) {
+      Category? existingCategory;
+      for (final element in isar.categorys.where().findAll()) {
+        if (element.categoryName == category.categoryName &&
+            _matchCategoryDomain(element, domain)) {
+          existingCategory = element;
+          break;
+        }
+      }
+      if (existingCategory != null) {
         // 如果同名但 ID 不同，则修改分类名称并添加随机后缀
         category.categoryName =
             '${category.categoryName}_${const Uuid().v4().substring(0, 4)}';
       }
       // 为分类分配新的唯一 ID
-      category.id = const Uuid().v7();
+      category.id = domain == DiaryDomain.memoir
+          ? 'memoir_${const Uuid().v7()}'
+          : const Uuid().v7();
+      category.domain = domain.value;
       // 将分类保存到数据库中
       isar.categorys.put(category);
       // 返回是否是新名称（true 表示没有冲突）
@@ -291,12 +394,25 @@ class IsarUtil {
   // 更新一个分类
   static Future<bool> updateACategory(Category category) async {
     return await _isar.writeAsync((isar) {
+      final domain = _isMemoirCategory(category)
+          ? DiaryDomain.memoir
+          : DiaryDomain.normal;
+      category.domain = domain.value;
+      String? oldCategoryId;
+      if (domain == DiaryDomain.memoir && !category.id.startsWith('memoir_')) {
+        oldCategoryId = category.id;
+        category.id = 'memoir_${category.id}';
+      }
       // 查询数据库中是否有同名但 ID 不同的分类
-      final existingCategory =
-          isar.categorys
-              .where()
-              .categoryNameEqualTo(category.categoryName)
-              .findFirst();
+      Category? existingCategory;
+      for (final element in isar.categorys.where().findAll()) {
+        if (element.id != category.id &&
+            element.categoryName == category.categoryName &&
+            _matchCategoryDomain(element, domain)) {
+          existingCategory = element;
+          break;
+        }
+      }
       if (existingCategory != null && existingCategory.id != category.id) {
         // 如果同名但 ID 不同，则修改分类名称并添加随机后缀
         category.categoryName =
@@ -304,6 +420,20 @@ class IsarUtil {
       }
       // 将分类保存到数据库中
       isar.categorys.put(category);
+      if (oldCategoryId != null) {
+        final diaries = isar.diarys
+            .where()
+            .categoryIdEqualTo(oldCategoryId)
+            .findAll();
+        for (final diary in diaries) {
+          diary.categoryId = category.id;
+          _normalizeDiaryDomainTag(diary);
+        }
+        if (diaries.isNotEmpty) {
+          isar.diarys.putAll(diaries);
+        }
+        isar.categorys.delete(oldCategoryId);
+      }
       // 返回是否是新名称（true 表示没有冲突）
       return existingCategory == null;
     });
@@ -320,49 +450,66 @@ class IsarUtil {
   }
 
   // 获取所有日记内容
-  static Future<List<String>> getContentList() async {
-    return (await _isar.diarys
-            .where()
-            .showEqualTo(true)
-            .contentTextProperty()
-            .findAllAsync())
-        .cast<String>();
+  static Future<List<String>> getContentList({DiaryDomain? domain}) async {
+    final diaries = await _isar.diarys.where().showEqualTo(true).findAllAsync();
+    return diaries
+        .where((diary) => _matchDiaryDomain(diary, domain))
+        .map((diary) => diary.contentText)
+        .toList();
   }
 
   //获取所有分类，这是个同步方法，用于第一次初始化，要怪就怪 TabBar
-  static List<Category> getAllCategory() {
-    return _isar.categorys.where().sortById().findAll();
+  static List<Category> getAllCategory({
+    DiaryDomain domain = DiaryDomain.normal,
+  }) {
+    final list = _isar.categorys
+        .where()
+        .findAll()
+        .where((category) => _matchCategoryDomain(category, domain))
+        .map(_hydrateCategoryDomain)
+        .toList();
+    list.sort((a, b) => a.id.compareTo(b.id));
+    return list;
   }
 
-  static Future<List<Category>> getAllCategoryAsync() async {
-    return _isar.categorys.where().sortById().findAllAsync();
+  static Future<List<Category>> getAllCategoryAsync({
+    DiaryDomain domain = DiaryDomain.normal,
+  }) async {
+    final list = (await _isar.categorys.where().findAllAsync())
+        .where((category) => _matchCategoryDomain(category, domain))
+        .map(_hydrateCategoryDomain)
+        .toList();
+    list.sort((a, b) => a.id.compareTo(b.id));
+    return list;
   }
 
   //获取对应分类的日记,如果为空，返回全部日记
   static Future<List<Diary>> getDiaryByCategory(
     String? categoryId,
     int offset,
-    int limit,
-  ) async {
-    if (categoryId == null) {
-      return await _isar.diarys
-          .where()
-          .showEqualTo(true)
-          .sortByTimeDesc()
-          .findAllAsync(offset: offset, limit: limit);
-    } else {
-      return await _isar.diarys
-          .where()
-          .showEqualTo(true)
-          .categoryIdEqualTo(categoryId)
-          .sortByTimeDesc()
-          .findAllAsync(offset: offset, limit: limit);
-    }
+    int limit, {
+    DiaryDomain domain = DiaryDomain.normal,
+  }) async {
+    final diaries = await _isar.diarys.where().showEqualTo(true).findAllAsync();
+    final filtered =
+        diaries
+            .where((diary) {
+              if (!_matchDiaryDomain(diary, domain)) return false;
+              if (categoryId == null) return true;
+              return diary.categoryId == categoryId;
+            })
+            .map(_hydrateDiaryDomain)
+            .toList()
+          ..sort((a, b) => b.time.compareTo(a.time));
+
+    final safeOffset = offset.clamp(0, filtered.length);
+    final end = (safeOffset + limit).clamp(0, filtered.length);
+    return filtered.sublist(safeOffset, end);
   }
 
   //获取某一天的日记
   static Future<List<Diary>> getDiaryByDay(DateTime time) async {
-    return await _isar.diarys
+    final diaries = await _isar.diarys
         .where()
         .showEqualTo(true)
         .yMdEqualTo(
@@ -370,13 +517,15 @@ class IsarUtil {
         )
         .sortByTimeDesc()
         .findAllAsync();
+    return diaries.map(_hydrateDiaryDomain).toList();
   }
 
   static Future<List<Diary>> getDiary(int offset, int limit) async {
-    return await _isar.diarys.where().findAllAsync(
+    final diaries = await _isar.diarys.where().findAllAsync(
       offset: offset,
       limit: limit,
     );
+    return diaries.map(_hydrateDiaryDomain).toList();
   }
 
   /// 2.4.8 版本变更
@@ -467,8 +616,8 @@ class IsarUtil {
           topK: BigInt.from(5),
           allowedPos: [],
         );
-        final sortByWeight =
-            keywords..sort((a, b) => b.weight.compareTo(a.weight));
+        final sortByWeight = keywords
+          ..sort((a, b) => b.weight.compareTo(a.weight));
         final sortedKeywords = sortByWeight.map((e) => e.keyword).toList();
         diary.keywords = sortedKeywords;
         diary.contentText = newContent;
@@ -557,12 +706,11 @@ class IsarUtil {
     /// 要满足以下条件
     /// 1. 有定位坐标
     /// 2. show
-    final diaries =
-        await _isar.diarys
-            .where()
-            .showEqualTo(true)
-            .positionIsNotEmpty()
-            .findAllAsync();
+    final diaries = await _isar.diarys
+        .where()
+        .showEqualTo(true)
+        .positionIsNotEmpty()
+        .findAllAsync();
     for (final diary in diaries) {
       res.add(
         DiaryMapItem(

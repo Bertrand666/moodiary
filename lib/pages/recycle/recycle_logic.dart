@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:moodiary/common/models/isar/diary.dart';
+import 'package:moodiary/common/values/diary_domain.dart';
 import 'package:moodiary/pages/home/diary/diary_logic.dart';
 import 'package:moodiary/persistence/isar.dart';
 import 'package:moodiary/utils/file_util.dart';
@@ -10,8 +11,6 @@ import 'recycle_state.dart';
 
 class RecycleLogic extends GetxController {
   final RecycleState state = RecycleState();
-
-  late final DiaryLogic diaryLogic = Bind.find<DiaryLogic>();
 
   @override
   void onReady() {
@@ -66,7 +65,12 @@ class RecycleLogic extends GetxController {
     //重新获取
     getDiaryList();
     update();
-    await diaryLogic.updateDiary(diary.categoryId);
+    final domain = DiaryDomain.fromValue(diary.domain);
+    if (Bind.isRegistered<DiaryLogic>(tag: domain.logicTag)) {
+      await Bind.find<DiaryLogic>(
+        tag: domain.logicTag,
+      ).updateDiary(diary.categoryId);
+    }
     toast.success(message: '已恢复');
   }
 }

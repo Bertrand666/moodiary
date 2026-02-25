@@ -7,8 +7,9 @@ import 'package:get/get.dart';
 import 'package:moodiary/common/models/isar/category.dart';
 import 'package:moodiary/common/models/isar/diary.dart';
 import 'package:moodiary/components/local_send/local_send_logic.dart';
-import 'package:moodiary/pages/home/diary/diary_logic.dart';
+import 'package:moodiary/common/values/diary_domain.dart';
 import 'package:moodiary/persistence/isar.dart';
+import 'package:moodiary/utils/diary_logic_util.dart';
 import 'package:moodiary/utils/file_util.dart';
 import 'package:moodiary/utils/log_util.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -121,12 +122,13 @@ class LocalSendServerLogic extends GetxController {
       await IsarUtil.updateACategory(
         Category()
           ..id = diary.categoryId!
+          ..domain = DiaryDomain.fromValue(diary.domain).value
           ..categoryName = categoryName,
       );
     }
     // 插入日记
     await IsarUtil.insertADiary(diary);
-    await Bind.find<DiaryLogic>().refreshAll();
+    await DiaryLogicUtil.refreshAllDomains();
     receiveCount.value += 1;
     return shelf.Response.ok('Data and files received successfully');
   }

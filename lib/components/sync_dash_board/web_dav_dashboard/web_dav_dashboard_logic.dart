@@ -2,9 +2,9 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/common/values/webdav.dart';
 import 'package:moodiary/l10n/l10n.dart';
-import 'package:moodiary/pages/home/diary/diary_logic.dart';
 import 'package:moodiary/persistence/isar.dart';
 import 'package:moodiary/router/app_routes.dart';
+import 'package:moodiary/utils/diary_logic_util.dart';
 import 'package:moodiary/utils/notice_util.dart';
 import 'package:moodiary/utils/webdav_util.dart';
 
@@ -88,19 +88,17 @@ class WebDavDashboardLogic extends GetxController {
   Future<void> checkConnectivity() async {
     state.connectivityStatus.value = WebDavConnectivityStatus.connecting;
     final res = await WebDavUtil().checkConnectivity();
-    state.connectivityStatus.value =
-        res
-            ? WebDavConnectivityStatus.connected
-            : WebDavConnectivityStatus.unconnected;
+    state.connectivityStatus.value = res
+        ? WebDavConnectivityStatus.connected
+        : WebDavConnectivityStatus.unconnected;
   }
 
   Future<void> fetchingWebDavSyncFlag() async {
     state.webdavSyncMap = await WebDavUtil().fetchServerSyncData();
-    state.webDavDiaryCount.value =
-        state.webdavSyncMap.values
-            .where((element) => element != 'delete')
-            .length
-            .toString();
+    state.webDavDiaryCount.value = state.webdavSyncMap.values
+        .where((element) => element != 'delete')
+        .length
+        .toString();
   }
 
   void toWebDavPage() async {
@@ -124,7 +122,7 @@ class WebDavDashboardLogic extends GetxController {
         state.toDownloadIdsCount.value =
             (int.parse(state.toDownloadIdsCount.value) - 1).toString();
         checkIsDownloading();
-        await Bind.find<DiaryLogic>().refreshAll();
+        await DiaryLogicUtil.refreshAllDomains();
       },
       onComplete: () {
         toast.success(message: context.l10n.webdavSyncSuccess);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:moodiary/api/api.dart';
+import 'package:moodiary/common/values/diary_domain.dart';
 import 'package:moodiary/common/values/view_mode.dart';
 import 'package:moodiary/components/diary_tab_view/diary_tab_view_logic.dart';
 import 'package:moodiary/components/scroll/fix_scroll.dart';
@@ -14,7 +15,8 @@ import 'package:moodiary/utils/webdav_util.dart';
 import 'diary_state.dart';
 
 class DiaryLogic extends GetxController with GetTickerProviderStateMixin {
-  final DiaryState state = DiaryState();
+  final DiaryDomain domain;
+  late final DiaryState state = DiaryState(domain: domain);
 
   //初始化tab控制器，长度加一由于有一个默认分类
   late TabController tabController;
@@ -23,9 +25,13 @@ class DiaryLogic extends GetxController with GetTickerProviderStateMixin {
 
   double lastScrollOffset = .0;
 
+  DiaryLogic({required this.domain});
+
   @override
   void onInit() {
-    autoSync();
+    if (domain == DiaryDomain.normal) {
+      autoSync();
+    }
     tabController = TabController(
       length: state.categoryList.length + 1,
       vsync: this,
@@ -71,7 +77,11 @@ class DiaryLogic extends GetxController with GetTickerProviderStateMixin {
       await WebDavUtil().syncDiary(
         diary,
         onDownload: () async {
-          await refreshAll();
+          for (final domain in DiaryDomain.values) {
+            if (Bind.isRegistered<DiaryLogic>(tag: domain.logicTag)) {
+              await Bind.find<DiaryLogic>(tag: domain.logicTag).refreshAll();
+            }
+          }
         },
       );
     }
@@ -116,10 +126,13 @@ class DiaryLogic extends GetxController with GetTickerProviderStateMixin {
     }
     if (offset == maxScrollExtent) {
       if (tabController.index == 0) {
-        await Bind.find<DiaryTabViewLogic>(tag: 'default').paginationDiary();
-      } else {
         await Bind.find<DiaryTabViewLogic>(
-          tag: state.categoryList[tabController.index - 1].id,
+          tag: domain.defaultTabTag,
+        ).paginationDiary();
+      } else {
+        final categoryId = state.categoryList[tabController.index - 1].id;
+        await Bind.find<DiaryTabViewLogic>(
+          tag: domain.tabTag(categoryId),
         ).paginationDiary();
       }
     }
@@ -150,13 +163,12 @@ class DiaryLogic extends GetxController with GetTickerProviderStateMixin {
   void checkPageChange() {
     state.currentTabBarIndex = tabController.index;
     // 获取当前分类ID，若为默认分类，设为 'default'
-    final String categoryId =
-        state.currentTabBarIndex == 0
-            ? 'default'
-            : state.categoryList[state.currentTabBarIndex - 1].id;
+    final String categoryTag = state.currentTabBarIndex == 0
+        ? domain.defaultTabTag
+        : domain.tabTag(state.categoryList[state.currentTabBarIndex - 1].id);
     // 遍历 keyMap，更新每个分类的状态
     state.keyMap.forEach((k, v) {
-      v.currentState?.onPageChange(k == categoryId);
+      v.currentState?.onPageChange(k == categoryTag);
     });
   }
 
@@ -184,10 +196,12 @@ class DiaryLogic extends GetxController with GetTickerProviderStateMixin {
     }
     //如果控制器已经存在，重新获取，如果不存在，不需要任何操作
     if (tabViewIndex != 0 &&
-        Bind.isRegistered<DiaryTabViewLogic>(tag: categoryId)) {
-      await Bind.find<DiaryTabViewLogic>(tag: categoryId).updateDiary();
+        Bind.isRegistered<DiaryTabViewLogic>(tag: domain.tabTag(categoryId))) {
+      await Bind.find<DiaryTabViewLogic>(
+        tag: domain.tabTag(categoryId),
+      ).updateDiary();
     }
-    await Bind.find<DiaryTabViewLogic>(tag: 'default').updateDiary();
+    await Bind.find<DiaryTabViewLogic>(tag: domain.defaultTabTag).updateDiary();
   }
 
   Future<void> refreshAll() async {
@@ -208,19 +222,22 @@ class DiaryLogic extends GetxController with GetTickerProviderStateMixin {
   /// 3. 删除分类之后
   Future<void> updateCategory() async {
     //重新获取分类
-    state.categoryList = await IsarUtil.getAllCategoryAsync();
+    state.categoryList = await IsarUtil.getAllCategoryAsync(domain: domain);
 
     // 移除 Map 中不再存在的 Category id
     state.keyMap.removeWhere(
       (k, v) =>
-          !state.categoryList.map((category) => category.id).contains(k) &&
-          k != 'default',
+          !state.categoryList
+              .map((category) => domain.tabTag(category.id))
+              .contains(k) &&
+          k != domain.defaultTabTag,
     );
 
     // 为新的 Category 添加新的 GlobalKey
     for (final category in state.categoryList) {
-      if (!state.keyMap.containsKey(category.id)) {
-        state.keyMap[category.id] = GlobalKey<PrimaryScrollWrapperState>();
+      final tag = domain.tabTag(category.id);
+      if (!state.keyMap.containsKey(tag)) {
+        state.keyMap[tag] = GlobalKey<PrimaryScrollWrapperState>();
       }
     }
     //重新初始化Tab控制器

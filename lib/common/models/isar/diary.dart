@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:isar/isar.dart';
+import 'package:moodiary/common/values/diary_domain.dart';
 import 'package:uuid/uuid.dart';
 
 part 'diary.g.dart';
@@ -16,6 +17,10 @@ class Diary {
   //分类id
   @Index()
   String? categoryId;
+
+  // 分域：普通日记 / 回忆录（仅运行时使用，不入库）
+  @ignore
+  String domain = DiaryDomain.normal.value;
 
   //标题
   String title = '';
@@ -90,6 +95,7 @@ class Diary {
           id == other.id &&
           isarId == other.isarId &&
           categoryId == other.categoryId &&
+          domain == other.domain &&
           title == other.title &&
           content == other.content &&
           contentText == other.contentText &&
@@ -113,6 +119,7 @@ class Diary {
   int get hashCode {
     return id.hashCode ^
         categoryId.hashCode ^
+        domain.hashCode ^
         title.hashCode ^
         content.hashCode ^
         contentText.hashCode ^
@@ -140,6 +147,7 @@ class Diary {
     return Diary()
       ..id = id
       ..categoryId = categoryId
+      ..domain = domain
       ..title = title
       ..content = content
       ..contentText = contentText
@@ -167,6 +175,7 @@ class Diary {
     return {
       'id': id,
       'categoryId': categoryId,
+      'domain': domain,
       'title': title,
       'content': content,
       'contentText': contentText,
@@ -192,6 +201,7 @@ class Diary {
     return Diary()
       ..id = json['id'] as String
       ..categoryId = json['categoryId'] as String?
+      ..domain = (json['domain'] as String?) ?? DiaryDomain.normal.value
       ..title = json['title'] as String
       ..content = json['content'] as String
       ..contentText = json['contentText'] as String

@@ -12,6 +12,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:moodiary/api/api.dart';
 import 'package:moodiary/common/models/isar/diary.dart';
+import 'package:moodiary/common/values/diary_domain.dart';
+import 'package:moodiary/common/values/diary_template.dart';
 import 'package:moodiary/common/values/diary_type.dart';
 import 'package:moodiary/common/values/keyboard_state.dart';
 import 'package:moodiary/components/base/text.dart';
@@ -21,6 +23,7 @@ import 'package:moodiary/components/quill_embed/image_embed.dart';
 import 'package:moodiary/components/quill_embed/text_indent.dart';
 import 'package:moodiary/components/quill_embed/video_embed.dart';
 import 'package:moodiary/l10n/l10n.dart';
+import 'package:moodiary/pages/edit/edit_args.dart';
 import 'package:moodiary/persistence/isar.dart';
 import 'package:moodiary/persistence/pref.dart';
 import 'package:moodiary/router/app_routes.dart';
@@ -109,10 +112,11 @@ class EditLogic extends GetxController {
   }
 
   Future<void> _initEdit() async {
-    //如果是新增，更具不同的分类展示不同的操作
-    if (Get.arguments.runtimeType == List<Object?>) {
+    //如果是新增，根据不同参数展示不同的操作
+    if (Get.arguments is! Diary) {
+      final createArgs = _resolveCreateArgs(Get.arguments);
       // 配置日记类型
-      state.type = Get.arguments[0] as DiaryType;
+      state.type = createArgs.type;
       switch (state.type) {
         case DiaryType.text:
         case DiaryType.richText:
@@ -120,26 +124,29 @@ class EditLogic extends GetxController {
         case DiaryType.markdown:
           markdownTextEditingController = TextEditingController();
       }
-      state.currentDiary = Diary();
+      state.currentDiary = Diary()..domain = createArgs.domain.value;
       if (state.firstLineIndent) insertNewLine();
       if (state.autoWeather) {
         unawaited(getPositionAndWeather(context: Get.context!));
       }
-      if (state.autoCategory) selectCategory(Get.arguments[1] as String?);
+      if (state.autoCategory) selectCategory(createArgs.categoryId);
+      _applyTemplate(createArgs.template);
     } else {
       //如果是编辑，将日记对象赋值
       state.isNew = false;
       state.originalDiary = Get.arguments as Diary;
+      if (state.originalDiary!.domain.isEmpty) {
+        state.originalDiary!.domain = DiaryDomain.normal.value;
+      }
       state.type = DiaryType.values.firstWhere(
         (type) => type.value == state.originalDiary!.type,
       );
       state.currentDiary = state.originalDiary!.clone();
       // 获取分类名称
       if (state.originalDiary!.categoryId != null) {
-        state.categoryName =
-            IsarUtil.getCategoryName(
-              state.originalDiary!.categoryId!,
-            )!.categoryName;
+        state.categoryName = IsarUtil.getCategoryName(
+          state.originalDiary!.categoryId!,
+        )!.categoryName;
       }
       // 初始化标题控制器
       titleTextEditingController.text = state.originalDiary!.title;
@@ -194,6 +201,60 @@ class EditLogic extends GetxController {
     update(['body']);
   }
 
+  EditCreateArgs _resolveCreateArgs(Object? args) {
+    if (args is EditCreateArgs) return args;
+
+    // 兼容旧参数格式：[DiaryType, String? categoryId]
+    if (args is List<Object?> && args.isNotEmpty && args.first is DiaryType) {
+      return EditCreateArgs(
+        domain: DiaryDomain.normal,
+        type: args.first as DiaryType,
+        categoryId: args.length > 1 ? args[1] as String? : null,
+      );
+    }
+
+    throw ArgumentError('Unsupported edit create args: $args');
+  }
+
+  void _applyTemplate(DiaryTemplate? template) {
+    if (template != DiaryTemplate.childhoodMemoir) return;
+    final l10n = Get.context?.l10n;
+    final title = l10n?.editTemplateChildhoodTitle ?? '我的童年回忆录';
+    final content =
+        l10n?.editTemplateChildhoodContent ??
+        '幼儿时期（3-6岁）\n'
+            '你最早记得的一件事是什么？\n'
+            '那时最依赖的人是谁？\n\n'
+            '小学时期（7-12岁）\n'
+            '最难忘的老师或同学是谁？\n'
+            '哪次考试或活动让你印象最深？\n\n'
+            '初中时期（13-15岁）\n'
+            '你当时最在意的事情是什么？\n'
+            '有没有一次让你改变看法的经历？\n\n'
+            '高中时期（16-18岁）\n'
+            '你第一次认真思考未来是什么时候？\n'
+            '那时的你和现在最大的不同是什么？\n\n'
+            '我的总结\n'
+            '回看这段童年经历，你想对当时的自己说什么？';
+
+    titleTextEditingController.text = title;
+
+    if (state.type == DiaryType.markdown) {
+      markdownTextEditingController?.text = content;
+    } else {
+      quillController?.replaceText(0, 0, '$content\n', null);
+      quillController?.moveCursorToPosition(content.length);
+    }
+
+    if (!state.currentDiary.tags.contains(
+      DiaryTemplateConst.childhoodMemoirTag,
+    )) {
+      state.currentDiary.tags.add(DiaryTemplateConst.childhoodMemoirTag);
+    }
+    state.totalCount.value = _toPlainText().length;
+    update(['Tag']);
+  }
+
   //计算写作时长
   void _calculateDuration() {
     _timer?.cancel();
@@ -210,11 +271,11 @@ class EditLogic extends GetxController {
     return state.type == DiaryType.markdown
         ? _markdownToPlainText(markdownTextEditingController!.text)
         : quillController!.document.toPlainText([
-          ImageEmbedBuilder(isEdit: true),
-          VideoEmbedBuilder(isEdit: true),
-          AudioEmbedBuilder(isEdit: true),
-          TextIndentEmbedBuilder(isEdit: true),
-        ]).trim();
+            ImageEmbedBuilder(isEdit: true),
+            VideoEmbedBuilder(isEdit: true),
+            AudioEmbedBuilder(isEdit: true),
+            TextIndentEmbedBuilder(isEdit: true),
+          ]).trim();
   }
 
   String _markdownToPlainText(String markdown) {
@@ -405,10 +466,9 @@ class EditLogic extends GetxController {
     state.isSaving = true;
     update(['modal']);
     // 根据文本中的实际内容移除不需要的资源
-    final originContent =
-        state.type == DiaryType.markdown
-            ? markdownTextEditingController!.text.trim()
-            : jsonEncode(quillController!.document.toDelta().toJson());
+    final originContent = state.type == DiaryType.markdown
+        ? markdownTextEditingController!.text.trim()
+        : jsonEncode(quillController!.document.toDelta().toJson());
     final needImage = await Kmp.findMatches(
       text: originContent,
       patterns: state.imagePathList,
@@ -469,10 +529,9 @@ class EditLogic extends GetxController {
         : Get.back(result: 'changed');
     if (!context.mounted) return;
     toast.success(
-      message:
-          state.isNew
-              ? context.l10n.editSaveSuccess
-              : context.l10n.editChangeSuccess,
+      message: state.isNew
+          ? context.l10n.editSaveSuccess
+          : context.l10n.editChangeSuccess,
     );
   }
 
@@ -672,6 +731,12 @@ class EditLogic extends GetxController {
     } else {
       final category = IsarUtil.getCategoryName(id);
       if (category != null) {
+        if (category.domain != state.currentDiary.domain) {
+          state.currentDiary.categoryId = null;
+          state.categoryName = '';
+          update(['CategoryName']);
+          return;
+        }
         state.categoryName = category.categoryName;
       }
     }

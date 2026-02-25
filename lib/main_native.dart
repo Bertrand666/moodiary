@@ -8,7 +8,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:fvp/fvp.dart' as fvp;
 import 'package:get/get.dart';
 import 'package:intl/find_locale.dart';
 import 'package:intl/intl.dart';
@@ -39,7 +38,6 @@ Future<void> _initSystem() async {
   unawaited(_platFormOption());
   WebDavUtil().initWebDav();
   await ThemeUtil().buildTheme();
-  fvp.registerWith();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -56,10 +54,9 @@ Future<Locale> _findLanguage() async {
   );
   if (language == Language.system) {
     final systemLocale = await findSystemLocale();
-    final systemLanguageCode =
-        systemLocale.contains('_')
-            ? systemLocale.split('_').first
-            : systemLocale;
+    final systemLanguageCode = systemLocale.contains('_')
+        ? systemLocale.split('_').first
+        : systemLocale;
     language = Language.values.firstWhere(
       (e) => e.languageCode == systemLanguageCode,
       orElse: () => Language.english,

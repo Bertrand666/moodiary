@@ -254,6 +254,12 @@ abstract class AppLocalizations {
   /// **'分类管理'**
   String get settingFunctionCategoryManage;
 
+  /// No description provided for @memoirCategoryManageTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'回忆录分类管理'**
+  String get memoirCategoryManageTitle;
+
   /// No description provided for @settingFunctionAnalysis.
   ///
   /// In zh, this message translates to:
@@ -764,6 +770,12 @@ abstract class AppLocalizations {
   /// **'日记'**
   String get homeNavigatorDiary;
 
+  /// No description provided for @homeNavigatorMemoir.
+  ///
+  /// In zh, this message translates to:
+  /// **'回忆录'**
+  String get homeNavigatorMemoir;
+
   /// No description provided for @homeNavigatorCalendar.
   ///
   /// In zh, this message translates to:
@@ -793,6 +805,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'新建日记'**
   String get homePageAddDiaryButton;
+
+  /// No description provided for @homeNewDiaryChildhoodMemoir.
+  ///
+  /// In zh, this message translates to:
+  /// **'童年回忆录'**
+  String get homeNewDiaryChildhoodMemoir;
 
   /// No description provided for @homeNewDiaryRichText.
   ///
@@ -1364,11 +1382,23 @@ abstract class AppLocalizations {
   /// **'搜索'**
   String get diarySearch;
 
+  /// No description provided for @diarySearchOnlyChildhoodMemoir.
+  ///
+  /// In zh, this message translates to:
+  /// **'仅看童年回忆录'**
+  String get diarySearchOnlyChildhoodMemoir;
+
   /// No description provided for @diarySearchResult.
   ///
   /// In zh, this message translates to:
   /// **'共有 {count} 篇'**
   String diarySearchResult(Object count);
+
+  /// No description provided for @diaryChildhoodMemoirBadge.
+  ///
+  /// In zh, this message translates to:
+  /// **'回忆录'**
+  String get diaryChildhoodMemoirBadge;
 
   /// No description provided for @webdavDashboardSetting.
   ///
@@ -1639,6 +1669,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'修改成功'**
   String get editChangeSuccess;
+
+  /// No description provided for @editTemplateChildhoodTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'我的童年回忆录'**
+  String get editTemplateChildhoodTitle;
+
+  /// No description provided for @editTemplateChildhoodContent.
+  ///
+  /// In zh, this message translates to:
+  /// **'幼儿时期（3-6岁）\n你最早记得的一件事是什么？\n那时最依赖的人是谁？\n\n小学时期（7-12岁）\n最难忘的老师或同学是谁？\n哪次考试或活动让你印象最深？\n\n初中时期（13-15岁）\n你当时最在意的事情是什么？\n有没有一次让你改变看法的经历？\n\n高中时期（16-18岁）\n你第一次认真思考未来是什么时候？\n那时的你和现在最大的不同是什么？\n\n我的总结\n回看这段童年经历，你想对当时的自己说什么？'**
+  String get editTemplateChildhoodContent;
 
   /// No description provided for @locationError.
   ///

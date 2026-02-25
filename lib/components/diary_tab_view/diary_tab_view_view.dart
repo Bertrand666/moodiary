@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moodiary/common/values/diary_domain.dart';
 import 'package:moodiary/common/values/view_mode.dart';
 import 'package:moodiary/components/base/clipper.dart';
 import 'package:moodiary/components/base/loading.dart';
@@ -12,8 +13,13 @@ import 'package:waterfall_flow/waterfall_flow.dart';
 import 'diary_tab_view_logic.dart';
 
 class DiaryTabViewComponent extends StatelessWidget {
-  const DiaryTabViewComponent({super.key, required this.categoryId});
+  const DiaryTabViewComponent({
+    super.key,
+    required this.domain,
+    required this.categoryId,
+  });
 
+  final DiaryDomain domain;
   final String? categoryId;
 
   Widget _buildPlaceholder(double height) {
@@ -35,10 +41,10 @@ class DiaryTabViewComponent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final logicTag = categoryId ?? 'default';
+    final logicTag = domain.tabTag(categoryId);
     final barHeight = 46 + kToolbarHeight + MediaQuery.paddingOf(context).top;
     final logic = Get.put(
-      DiaryTabViewLogic(categoryId: categoryId),
+      DiaryTabViewLogic(domain: domain, categoryId: categoryId),
       tag: logicTag,
     );
     final state = Bind.find<DiaryTabViewLogic>(tag: logicTag).state;
@@ -100,15 +106,14 @@ class DiaryTabViewComponent extends StatelessWidget {
               return SliverAnimatedSwitcher(
                 duration: const Duration(milliseconds: 150),
                 reverseDuration: const Duration(milliseconds: 100),
-                child:
-                    state.isFetching.value
-                        ? _buildPlaceholder(placeholderHeight)
-                        : state.diaryList.isEmpty
-                        ? _buildEmpty(context, placeholderHeight)
-                        : switch (logic.diaryLogic.state.viewModeType.value) {
-                          ViewModeType.list => buildList(),
-                          ViewModeType.grid => buildGrid(),
-                        },
+                child: state.isFetching.value
+                    ? _buildPlaceholder(placeholderHeight)
+                    : state.diaryList.isEmpty
+                    ? _buildEmpty(context, placeholderHeight)
+                    : switch (logic.diaryLogic.state.viewModeType.value) {
+                        ViewModeType.list => buildList(),
+                        ViewModeType.grid => buildGrid(),
+                      },
               );
             }),
           ],

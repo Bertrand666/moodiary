@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/common/models/isar/category.dart';
+import 'package:moodiary/common/values/diary_domain.dart';
 import 'package:moodiary/common/values/view_mode.dart';
 import 'package:moodiary/components/scroll/fix_scroll.dart';
 import 'package:moodiary/persistence/isar.dart';
 import 'package:moodiary/persistence/pref.dart';
 
 class DiaryState {
+  final DiaryDomain domain;
+
   //自定义标题名称，如果为空则为默认值
   late RxString customTitleName;
 
@@ -26,8 +29,9 @@ class DiaryState {
       nestedScrollKey.currentState!.outerController;
 
   //视图模式状态
-  late Rx<ViewModeType> viewModeType =
-      ViewModeType.getType(PrefUtil.getValue<int>('homeViewMode')!).obs;
+  late Rx<ViewModeType> viewModeType = ViewModeType.getType(
+    PrefUtil.getValue<int>('homeViewMode')!,
+  ).obs;
 
   //当前tab bar位置
   late int currentTabBarIndex;
@@ -35,7 +39,7 @@ class DiaryState {
   // 一言
   RxString hitokoto = '...'.obs;
 
-  DiaryState() {
+  DiaryState({required this.domain}) {
     customTitleName = PrefUtil.getValue<String>('customTitleName')!.obs;
 
     nestedScrollKey = GlobalKey<NestedScrollViewState>();
@@ -43,13 +47,14 @@ class DiaryState {
     currentTabBarIndex = 0;
 
     //第一次获取分类，这里是同步方法，因为分类数量是可控的，所以应该不会有性能问题，但愿如此
-    categoryList = IsarUtil.getAllCategory();
+    categoryList = IsarUtil.getAllCategory(domain: domain);
 
     //默认分类
-    keyMap = {'default': GlobalKey<PrimaryScrollWrapperState>()};
+    keyMap = {domain.defaultTabTag: GlobalKey<PrimaryScrollWrapperState>()};
     //其他分类
     for (final category in categoryList) {
-      keyMap[category.id] = GlobalKey<PrimaryScrollWrapperState>();
+      keyMap[domain.tabTag(category.id)] =
+          GlobalKey<PrimaryScrollWrapperState>();
     }
   }
 }

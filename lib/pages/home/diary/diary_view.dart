@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moodiary/common/values/diary_domain.dart';
 import 'package:moodiary/common/values/view_mode.dart';
 import 'package:moodiary/components/base/loading.dart';
 import 'package:moodiary/components/base/sheet.dart';
@@ -17,7 +18,9 @@ import 'package:moodiary/utils/webdav_util.dart';
 import 'diary_logic.dart';
 
 class DiaryPage extends StatelessWidget {
-  const DiaryPage({super.key});
+  final DiaryDomain domain;
+
+  const DiaryPage({super.key, required this.domain});
 
   Widget _buildSyncingButton({
     required BuildContext context,
@@ -38,8 +41,9 @@ class DiaryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final logic = Get.put(DiaryLogic());
-    final state = Bind.find<DiaryLogic>().state;
+    final logicTag = domain.logicTag;
+    final logic = Get.put(DiaryLogic(domain: domain), tag: logicTag);
+    final state = Bind.find<DiaryLogic>(tag: logicTag).state;
 
     //生成TabBar
     Widget buildTabBar() {
@@ -67,7 +71,7 @@ class DiaryPage extends StatelessWidget {
               showFloatingModalBottomSheet(
                 context: context,
                 builder: (context) {
-                  return const CategoryChoiceSheetComponent();
+                  return CategoryChoiceSheetComponent(domain: domain);
                 },
               );
             },
@@ -107,7 +111,7 @@ class DiaryPage extends StatelessWidget {
       return KeepAliveWrapper(
         child: PrimaryScrollWrapper(
           key: key,
-          child: DiaryTabViewComponent(categoryId: categoryId),
+          child: DiaryTabViewComponent(domain: domain, categoryId: categoryId),
         ),
       );
     }
@@ -115,14 +119,15 @@ class DiaryPage extends StatelessWidget {
     Widget buildTabBarView() {
       final List<Widget> allViews = [];
       // 添加全部日记页面
-      allViews.add(buildDiaryView(0, state.keyMap['default'], null));
+      allViews.add(buildDiaryView(0, state.keyMap[domain.defaultTabTag], null));
       // 添加分类日记页面
       allViews.addAll(
         List.generate(state.categoryList.length, (index) {
+          final categoryId = state.categoryList[index].id;
           return buildDiaryView(
             index + 1,
-            state.keyMap[state.categoryList[index].id],
-            state.categoryList[index].id,
+            state.keyMap[domain.tabTag(categoryId)],
+            categoryId,
           );
         }),
       );
@@ -144,7 +149,9 @@ class DiaryPage extends StatelessWidget {
 
     final title = Obx(() {
       return AdaptiveText(
-        state.customTitleName.value.isNotEmpty
+        domain == DiaryDomain.memoir
+            ? context.l10n.homeNavigatorMemoir
+            : state.customTitleName.value.isNotEmpty
             ? state.customTitleName.value
             : context.l10n.appName,
         style: context.textTheme.titleLarge?.copyWith(
@@ -162,6 +169,7 @@ class DiaryPage extends StatelessWidget {
       );
     });
     return GetBuilder<DiaryLogic>(
+      tag: logicTag,
       builder: (_) {
         return NestedScrollView(
           key: state.nestedScrollKey,
@@ -181,35 +189,35 @@ class DiaryPage extends StatelessWidget {
                     Obx(() {
                       return WebDavUtil().syncingDiaries.isNotEmpty
                           ? _buildSyncingButton(
-                            context: context,
-                            onTap: () {
-                              showFloatingModalBottomSheet(
-                                context: context,
-                                builder: (context) {
-                                  return const SyncDashBoardComponent();
-                                },
-                              );
-                            },
-                          )
+                              context: context,
+                              onTap: () {
+                                showFloatingModalBottomSheet(
+                                  context: context,
+                                  builder: (context) {
+                                    return const SyncDashBoardComponent();
+                                  },
+                                );
+                              },
+                            )
                           : IconButton(
-                            onPressed: () {
-                              showFloatingModalBottomSheet(
-                                context: context,
-                                builder: (context) {
-                                  return const SyncDashBoardComponent();
-                                },
-                              );
-                            },
-                            tooltip: context.l10n.dataSync,
-                            icon: const Icon(Icons.cloud_sync_rounded),
-                          );
+                              onPressed: () {
+                                showFloatingModalBottomSheet(
+                                  context: context,
+                                  builder: (context) {
+                                    return const SyncDashBoardComponent();
+                                  },
+                                );
+                              },
+                              tooltip: context.l10n.dataSync,
+                              icon: const Icon(Icons.cloud_sync_rounded),
+                            );
                     }),
                     IconButton(
                       onPressed: () {
                         showFloatingModalBottomSheet(
                           context: context,
                           builder: (context) {
-                            return const SearchSheetComponent();
+                            return SearchSheetComponent(domain: domain);
                           },
                         );
                       },

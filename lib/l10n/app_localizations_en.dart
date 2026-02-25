@@ -90,6 +90,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingFunctionCategoryManage => 'Category Management';
 
   @override
+  String get memoirCategoryManageTitle => 'Memoir Categories';
+
+  @override
   String get settingFunctionAnalysis => 'Analysis Statistics';
 
   @override
@@ -352,6 +355,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeNavigatorDiary => 'Diary';
 
   @override
+  String get homeNavigatorMemoir => 'Memoir';
+
+  @override
   String get homeNavigatorCalendar => 'Calendar';
 
   @override
@@ -365,6 +371,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homePageAddDiaryButton => 'Create a diary';
+
+  @override
+  String get homeNewDiaryChildhoodMemoir => 'Childhood Memoir';
 
   @override
   String get homeNewDiaryRichText => 'Rich Text';
@@ -663,9 +672,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diarySearch => 'Search';
 
   @override
+  String get diarySearchOnlyChildhoodMemoir => 'Only childhood memoir';
+
+  @override
   String diarySearchResult(Object count) {
     return 'Total $count diaries';
   }
+
+  @override
+  String get diaryChildhoodMemoirBadge => 'Memoir';
 
   @override
   String get webdavDashboardSetting => 'WebDAV Settings';
@@ -801,6 +816,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get editChangeSuccess => 'Modification successful';
+
+  @override
+  String get editTemplateChildhoodTitle => 'My Childhood Memoir';
+
+  @override
+  String get editTemplateChildhoodContent =>
+      'Early childhood (3-6)\nWhat is your earliest memory?\nWho did you rely on most at that time?\n\nPrimary school (7-12)\nWhich teacher or classmate is most unforgettable?\nWhich exam or activity left the deepest impression?\n\nMiddle school (13-15)\nWhat did you care about most at that age?\nWas there any event that changed your perspective?\n\nHigh school (16-18)\nWhen did you first seriously think about your future?\nWhat is the biggest difference between then and now?\n\nMy reflection\nLooking back, what would you like to say to your younger self?';
 
   @override
   String get locationError => 'Location failed';

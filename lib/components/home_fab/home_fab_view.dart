@@ -7,6 +7,11 @@ import 'package:moodiary/common/values/border.dart';
 import 'package:moodiary/l10n/l10n.dart';
 
 class HomeFabComponent extends StatelessWidget {
+  static const _mainButtonHeight = 56.0;
+  static const _mainButtonSpacing = 8.0;
+  static const _secondaryButtonHeight = 46.0;
+  static const _secondaryButtonSpacing = 8.0;
+
   final Animation<double> animation;
 
   final RxBool shouldShow;
@@ -19,6 +24,7 @@ class HomeFabComponent extends StatelessWidget {
   final Function() openFab;
 
   final Function() toTop;
+  final Function() toChildhoodMemoir;
   final Function() toMarkdown;
   final Function() toPlainText;
   final Function() toRichText;
@@ -32,6 +38,7 @@ class HomeFabComponent extends StatelessWidget {
     required this.isToTopShow,
     required this.isExpanded,
     required this.toTop,
+    required this.toChildhoodMemoir,
     required this.toMarkdown,
     required this.toPlainText,
     required this.toRichText,
@@ -47,7 +54,13 @@ class HomeFabComponent extends StatelessWidget {
         return Visibility(
           visible: isToTopShow.value && !isExpanded.value,
           child: Transform(
-            transform: Matrix4.identity()..translate(.0, -(56.0 + 8.0)),
+            transform: Matrix4.identity()
+              ..translateByDouble(
+                0.0,
+                -(_mainButtonHeight + _mainButtonSpacing),
+                0.0,
+                1.0,
+              ),
             alignment: FractionalOffset.center,
             child: GestureDetector(
               onTap: toTop,
@@ -68,8 +81,8 @@ class HomeFabComponent extends StatelessWidget {
                     ),
                   ],
                 ),
-                width: 56.0,
-                height: 56.0,
+                width: _mainButtonHeight,
+                height: _mainButtonHeight,
                 child: Center(
                   child: FaIcon(
                     FontAwesomeIcons.arrowUp,
@@ -89,17 +102,14 @@ class HomeFabComponent extends StatelessWidget {
       required IconData iconData,
       required int index,
     }) {
-      const double mainButtonHeight = 56.0;
-      const double mainButtonSpacing = 8.0;
-      const double secondaryButtonHeight = 46.0;
-
       double calculateVerticalTranslation(int index, double animationValue) {
-        const double baseOffset = mainButtonHeight + mainButtonSpacing;
+        const double baseOffset = _mainButtonHeight + _mainButtonSpacing;
         return index == 1
             ? baseOffset * index * animationValue
             : (baseOffset +
-                    (secondaryButtonHeight + mainButtonSpacing) * (index - 1)) *
-                animationValue;
+                      (_secondaryButtonHeight + _secondaryButtonSpacing) *
+                          (index - 1)) *
+                  animationValue;
       }
 
       final button = [
@@ -145,8 +155,8 @@ class HomeFabComponent extends StatelessWidget {
               ),
             ],
           ),
-          width: 56.0,
-          height: 46.0,
+          width: _mainButtonHeight,
+          height: _secondaryButtonHeight,
           alignment: Alignment.center,
           child: FaIcon(
             iconData,
@@ -192,8 +202,8 @@ class HomeFabComponent extends StatelessWidget {
           return GestureDetector(
             onTap: isExpanded.value ? closeFab : openFab,
             child: Container(
-              width: 56.0,
-              height: 56.0,
+              width: _mainButtonHeight,
+              height: _mainButtonHeight,
               decoration: ShapeDecoration(
                 shape: const RoundedRectangleBorder(
                   borderRadius: AppBorderRadius.largeBorderRadius,
@@ -203,19 +213,18 @@ class HomeFabComponent extends StatelessWidget {
                   context.theme.colorScheme.surfaceContainerHighest,
                   animation.value,
                 ),
-                shadows:
-                    showShadow
-                        ? [
-                          BoxShadow(
-                            color: context.theme.colorScheme.shadow.withAlpha(
-                              (255 * 0.1).toInt(),
-                            ),
-                            offset: const Offset(0, 2),
-                            blurRadius: 2,
-                            spreadRadius: 2,
+                shadows: showShadow
+                    ? [
+                        BoxShadow(
+                          color: context.theme.colorScheme.shadow.withAlpha(
+                            (255 * 0.1).toInt(),
                           ),
-                        ]
-                        : null,
+                          offset: const Offset(0, 2),
+                          blurRadius: 2,
+                          spreadRadius: 2,
+                        ),
+                      ]
+                    : null,
               ),
               child: Transform.rotate(
                 angle: 3 * pi / 4 * animation.value,
@@ -235,11 +244,45 @@ class HomeFabComponent extends StatelessWidget {
     }
 
     Widget buildDiaryFab(bool showShadow) {
+      final actionButtons =
+          <({String label, Function() onTap, IconData iconData})>[
+            (
+              label: context.l10n.homeNewDiaryChildhoodMemoir,
+              onTap: toChildhoodMemoir,
+              iconData: FontAwesomeIcons.bookOpen,
+            ),
+            (
+              label: context.l10n.homeNewDiaryRichText,
+              onTap: toRichText,
+              iconData: FontAwesomeIcons.feather,
+            ),
+            (
+              label: context.l10n.homeNewDiaryPlainText,
+              onTap: toPlainText,
+              iconData: FontAwesomeIcons.font,
+            ),
+            (
+              label: context.l10n.homeNewDiaryMarkdown,
+              onTap: toMarkdown,
+              iconData: FontAwesomeIcons.markdown,
+            ),
+          ];
+
+      final expandedHeight =
+          (_secondaryButtonHeight + _secondaryButtonSpacing) *
+              actionButtons.length -
+          _mainButtonHeight -
+          _mainButtonSpacing;
+
       return AnimatedBuilder(
         animation: animation,
         builder: (context, child) {
           return SizedBox(
-            height: 56 + 8 + 56 + ((46 + 8) * 3 - 56 - 8) * (animation.value),
+            height:
+                _mainButtonHeight +
+                _mainButtonSpacing +
+                _mainButtonHeight +
+                expandedHeight * animation.value,
             child: child,
           );
         },
@@ -248,24 +291,15 @@ class HomeFabComponent extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             buildToTopButton(),
-            buildAnimatedActionButton(
-              label: context.l10n.homeNewDiaryMarkdown,
-              onTap: toMarkdown,
-              iconData: FontAwesomeIcons.markdown,
-              index: 3,
-            ),
-            buildAnimatedActionButton(
-              label: context.l10n.homeNewDiaryPlainText,
-              onTap: toPlainText,
-              iconData: FontAwesomeIcons.font,
-              index: 2,
-            ),
-            buildAnimatedActionButton(
-              label: context.l10n.homeNewDiaryRichText,
-              onTap: toRichText,
-              iconData: FontAwesomeIcons.feather,
-              index: 1,
-            ),
+            ...List.generate(actionButtons.length, (index) {
+              final action = actionButtons[index];
+              return buildAnimatedActionButton(
+                label: action.label,
+                onTap: action.onTap,
+                iconData: action.iconData,
+                index: index + 1,
+              );
+            }),
             buildFabButton(showShadow),
           ],
         ),
@@ -289,6 +323,7 @@ class DesktopHomeFabComponent extends StatelessWidget {
   final RxBool isToTopShow;
 
   final Function() toTop;
+  final Function() toChildhoodMemoir;
   final Function() toMarkdown;
   final Function() toPlainText;
   final Function() toRichText;
@@ -297,6 +332,7 @@ class DesktopHomeFabComponent extends StatelessWidget {
     super.key,
     required this.isToTopShow,
     required this.toTop,
+    required this.toChildhoodMemoir,
     required this.toMarkdown,
     required this.toPlainText,
     required this.toRichText,
@@ -319,6 +355,14 @@ class DesktopHomeFabComponent extends StatelessWidget {
               ),
             );
           }),
+          IconButton.filled(
+            onPressed: toChildhoodMemoir,
+            icon: const FaIcon(FontAwesomeIcons.bookOpen, size: 16),
+            style: const ButtonStyle(
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            tooltip: context.l10n.homeNewDiaryChildhoodMemoir,
+          ),
           IconButton.filled(
             onPressed: toMarkdown,
             icon: const FaIcon(FontAwesomeIcons.markdown, size: 16),

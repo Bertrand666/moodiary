@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:moodiary/common/values/diary_domain.dart';
+import 'package:moodiary/common/values/diary_template.dart';
 import 'package:moodiary/common/values/diary_type.dart';
 import 'package:moodiary/components/frosted_glass_overlay/frosted_glass_overlay_logic.dart';
+import 'package:moodiary/pages/edit/edit_args.dart';
 import 'package:moodiary/pages/home/diary/diary_logic.dart';
 import 'package:moodiary/persistence/pref.dart';
 import 'package:moodiary/router/app_routes.dart';
@@ -40,9 +43,10 @@ class HomeLogic extends GetxController with GetTickerProviderStateMixin {
   late final FrostedGlassOverlayLogic frostedGlassOverlayLogic =
       Bind.find<FrostedGlassOverlayLogic>();
 
-  late final DiaryLogic diaryLogic = Bind.find<DiaryLogic>();
-
   late final AppLifecycleListener _appLifecycleListener;
+
+  DiaryDomain get currentDomain =>
+      navigatorIndex.value == 1 ? DiaryDomain.memoir : DiaryDomain.normal;
 
   @override
   void onReady() async {
@@ -101,12 +105,15 @@ class HomeLogic extends GetxController with GetTickerProviderStateMixin {
   }
 
   Future<void> toTop() async {
-    await diaryLogic.toTop();
+    final tag = currentDomain.logicTag;
+    if (Bind.isRegistered<DiaryLogic>(tag: tag)) {
+      await Bind.find<DiaryLogic>(tag: tag).toTop();
+    }
   }
 
   void changeNavigator(int index) {
     navigatorIndex.value = index;
-    shouldShow.value = index == 0;
+    shouldShow.value = index == 0 || index == 1;
     pageController.jumpToPage(index);
   }
 
@@ -122,24 +129,41 @@ class HomeLogic extends GetxController with GetTickerProviderStateMixin {
     _barAnimationController.reset();
   }
 
-  Future<void> toEditPage({required DiaryType type}) async {
+  Future<void> toEditPage({
+    DiaryDomain? domain,
+    required DiaryType type,
+    DiaryTemplate? template,
+  }) async {
     HapticFeedback.selectionClick();
+    final targetDomain = domain ?? currentDomain;
+    final logicTag = targetDomain.logicTag;
+    final DiaryLogic? diaryLogic =
+        Bind.isRegistered<DiaryLogic>(tag: logicTag)
+            ? Bind.find<DiaryLogic>(tag: logicTag)
+            : null;
     String? categoryId;
-    if (diaryLogic.tabController.index == 0) {
+    if (diaryLogic == null || diaryLogic.tabController.index == 0) {
       categoryId = null;
     } else {
-      categoryId =
-          diaryLogic.state.categoryList[diaryLogic.tabController.index - 1].id;
+      categoryId = diaryLogic
+          .state
+          .categoryList[diaryLogic.tabController.index - 1]
+          .id;
     }
 
     /// 需要注意，返回值为 '' 时才是没有选择分类，而返回值为 null 时，是没有进行操作直接返回
     final res = await Get.toNamed(
       AppRoutes.editPage,
-      arguments: [type, categoryId],
+      arguments: EditCreateArgs(
+        domain: targetDomain,
+        type: type,
+        categoryId: categoryId,
+        template: template,
+      ),
     );
     _fabAnimationController.reset();
     isFabExpanded.value = false;
-    if (res != null) {
+    if (res != null && diaryLogic != null) {
       if (res == '') {
         await diaryLogic.updateDiary(null);
       } else {

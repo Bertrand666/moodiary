@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:moodiary/common/values/diary_domain.dart';
 import 'package:moodiary/common/values/border.dart';
 import 'package:moodiary/components/search_card/search_card_view.dart';
 import 'package:moodiary/l10n/l10n.dart';
@@ -9,14 +10,18 @@ import 'package:moodiary/l10n/l10n.dart';
 import 'search_sheet_logic.dart';
 
 class SearchSheetComponent extends StatelessWidget {
-  const SearchSheetComponent({super.key});
+  final DiaryDomain domain;
+
+  const SearchSheetComponent({super.key, required this.domain});
 
   @override
   Widget build(BuildContext context) {
-    final logic = Get.put(SearchSheetLogic());
-    final state = Bind.find<SearchSheetLogic>().state;
+    final logicTag = 'search_sheet_${domain.value}';
+    final logic = Get.put(SearchSheetLogic(domain: domain), tag: logicTag);
+    final state = Bind.find<SearchSheetLogic>(tag: logicTag).state;
 
     return GetBuilder<SearchSheetLogic>(
+      tag: logicTag,
       assignId: true,
       builder: (_) {
         return Column(
@@ -44,6 +49,22 @@ class SearchSheetComponent extends StatelessWidget {
                 ),
               ),
             ),
+            if (domain == DiaryDomain.memoir)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Obx(() {
+                    return FilterChip(
+                      label: Text(context.l10n.diarySearchOnlyChildhoodMemoir),
+                      selected: state.childhoodMemoirOnly.value,
+                      onSelected: (value) async {
+                        await logic.setChildhoodMemoirOnly(value);
+                      },
+                    );
+                  }),
+                ),
+              ),
             Obx(() {
               Widget child;
               if (state.isSearching.value && state.searchList.isEmpty) {
