@@ -373,7 +373,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homePageAddDiaryButton => 'Create a diary';
 
   @override
-  String get homeNewDiaryChildhoodMemoir => 'Childhood Memoir';
+  String get homeNewDiaryChildhoodMemoir => 'Memoir';
 
   @override
   String get homeNewDiaryRichText => 'Rich Text';
@@ -672,7 +672,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diarySearch => 'Search';
 
   @override
-  String get diarySearchOnlyChildhoodMemoir => 'Only childhood memoir';
+  String get diarySearchOnlyChildhoodMemoir => 'Only memoir';
 
   @override
   String diarySearchResult(Object count) {
@@ -818,7 +818,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editChangeSuccess => 'Modification successful';
 
   @override
-  String get editTemplateChildhoodTitle => 'My Childhood Memoir';
+  String get editTemplateChildhoodTitle => 'My Memoir';
 
   @override
   String get editTemplateChildhoodContent =>

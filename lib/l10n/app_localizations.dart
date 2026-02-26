@@ -809,7 +809,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeNewDiaryChildhoodMemoir.
   ///
   /// In zh, this message translates to:
-  /// **'童年回忆录'**
+  /// **'回忆录'**
   String get homeNewDiaryChildhoodMemoir;
 
   /// No description provided for @homeNewDiaryRichText.
@@ -1385,7 +1385,7 @@ abstract class AppLocalizations {
   /// No description provided for @diarySearchOnlyChildhoodMemoir.
   ///
   /// In zh, this message translates to:
-  /// **'仅看童年回忆录'**
+  /// **'仅看回忆录'**
   String get diarySearchOnlyChildhoodMemoir;
 
   /// No description provided for @diarySearchResult.
@@ -1673,7 +1673,7 @@ abstract class AppLocalizations {
   /// No description provided for @editTemplateChildhoodTitle.
   ///
   /// In zh, this message translates to:
-  /// **'我的童年回忆录'**
+  /// **'我的回忆录'**
   String get editTemplateChildhoodTitle;
 
   /// No description provided for @editTemplateChildhoodContent.

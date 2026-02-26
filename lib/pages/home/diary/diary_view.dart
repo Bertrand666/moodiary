@@ -149,9 +149,7 @@ class DiaryPage extends StatelessWidget {
 
     final title = Obx(() {
       return AdaptiveText(
-        domain == DiaryDomain.memoir
-            ? context.l10n.homeNavigatorMemoir
-            : state.customTitleName.value.isNotEmpty
+        state.customTitleName.value.isNotEmpty
             ? state.customTitleName.value
             : context.l10n.appName,
         style: context.textTheme.titleLarge?.copyWith(
@@ -168,6 +166,32 @@ class DiaryPage extends StatelessWidget {
         ),
       );
     });
+
+    final memoirHeader = Obx(() {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.l10n.homeNavigatorMemoir,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: context.textTheme.titleLarge?.copyWith(
+              color: context.theme.colorScheme.onSurface,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          Text(
+            state.hitokoto.value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: context.textTheme.labelSmall?.copyWith(
+              color: context.theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      );
+    });
     return GetBuilder<DiaryLogic>(
       tag: logicTag,
       builder: (_) {
@@ -180,10 +204,12 @@ class DiaryPage extends StatelessWidget {
                   context,
                 ),
                 sliver: SliverAppBar(
-                  title: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [title, hitokoto],
-                  ),
+                  title: domain == DiaryDomain.memoir
+                      ? memoirHeader
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [title, hitokoto],
+                        ),
                   pinned: true,
                   actions: [
                     Obx(() {

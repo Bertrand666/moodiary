@@ -115,13 +115,11 @@ class HomePage extends StatelessWidget {
                                 toRichText: () async {
                                   await logic.toEditPage(
                                     type: DiaryType.richText,
-                                  );
-                                },
-                                toChildhoodMemoir: () async {
-                                  await logic.toEditPage(
-                                    domain: DiaryDomain.memoir,
-                                    type: DiaryType.richText,
-                                    template: DiaryTemplate.childhoodMemoir,
+                                    template:
+                                        logic.currentDomain ==
+                                            DiaryDomain.memoir
+                                        ? DiaryTemplate.memoir
+                                        : null,
                                   );
                                 },
                               ),
@@ -182,13 +180,11 @@ class HomePage extends StatelessWidget {
           await logic.toEditPage(type: DiaryType.text);
         },
         toRichText: () async {
-          await logic.toEditPage(type: DiaryType.richText);
-        },
-        toChildhoodMemoir: () async {
           await logic.toEditPage(
-            domain: DiaryDomain.memoir,
             type: DiaryType.richText,
-            template: DiaryTemplate.childhoodMemoir,
+            template: logic.currentDomain == DiaryDomain.memoir
+                ? DiaryTemplate.memoir
+                : null,
           );
         },
         closeFab: logic.closeFab,

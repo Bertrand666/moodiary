@@ -24,7 +24,6 @@ class HomeFabComponent extends StatelessWidget {
   final Function() openFab;
 
   final Function() toTop;
-  final Function() toChildhoodMemoir;
   final Function() toMarkdown;
   final Function() toPlainText;
   final Function() toRichText;
@@ -38,7 +37,6 @@ class HomeFabComponent extends StatelessWidget {
     required this.isToTopShow,
     required this.isExpanded,
     required this.toTop,
-    required this.toChildhoodMemoir,
     required this.toMarkdown,
     required this.toPlainText,
     required this.toRichText,
@@ -247,11 +245,6 @@ class HomeFabComponent extends StatelessWidget {
       final actionButtons =
           <({String label, Function() onTap, IconData iconData})>[
             (
-              label: context.l10n.homeNewDiaryChildhoodMemoir,
-              onTap: toChildhoodMemoir,
-              iconData: FontAwesomeIcons.bookOpen,
-            ),
-            (
               label: context.l10n.homeNewDiaryRichText,
               onTap: toRichText,
               iconData: FontAwesomeIcons.feather,
@@ -323,7 +316,6 @@ class DesktopHomeFabComponent extends StatelessWidget {
   final RxBool isToTopShow;
 
   final Function() toTop;
-  final Function() toChildhoodMemoir;
   final Function() toMarkdown;
   final Function() toPlainText;
   final Function() toRichText;
@@ -332,7 +324,6 @@ class DesktopHomeFabComponent extends StatelessWidget {
     super.key,
     required this.isToTopShow,
     required this.toTop,
-    required this.toChildhoodMemoir,
     required this.toMarkdown,
     required this.toPlainText,
     required this.toRichText,
@@ -355,14 +346,6 @@ class DesktopHomeFabComponent extends StatelessWidget {
               ),
             );
           }),
-          IconButton.filled(
-            onPressed: toChildhoodMemoir,
-            icon: const FaIcon(FontAwesomeIcons.bookOpen, size: 16),
-            style: const ButtonStyle(
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            tooltip: context.l10n.homeNewDiaryChildhoodMemoir,
-          ),
           IconButton.filled(
             onPressed: toMarkdown,
             icon: const FaIcon(FontAwesomeIcons.markdown, size: 16),

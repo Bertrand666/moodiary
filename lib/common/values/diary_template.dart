@@ -1,5 +1,5 @@
 enum DiaryTemplate {
-  childhoodMemoir('childhoodMemoir');
+  memoir('memoir');
 
   final String value;
 
@@ -7,5 +7,10 @@ enum DiaryTemplate {
 }
 
 abstract class DiaryTemplateConst {
-  static const childhoodMemoirTag = '童年回忆录';
+  static const memoirTag = '回忆录';
+  static const legacyMemoirTag = '童年回忆录';
+
+  static bool hasMemoirTag(Iterable<String> tags) {
+    return tags.contains(memoirTag) || tags.contains(legacyMemoirTag);
+  }
 }

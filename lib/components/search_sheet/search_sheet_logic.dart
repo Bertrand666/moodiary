@@ -1,6 +1,7 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moodiary/common/models/isar/diary.dart';
 import 'package:moodiary/common/values/diary_domain.dart';
 import 'package:moodiary/common/values/diary_template.dart';
 import 'package:moodiary/common/values/keyboard_state.dart';
@@ -96,10 +97,19 @@ class SearchSheetLogic extends GetxController {
     state.isSearching.value = true;
 
     if (currentText.isBlank) {
-      state.searchList = await IsarUtil.searchDiariesByTag(
-        DiaryTemplateConst.childhoodMemoirTag,
+      final memoirList = await IsarUtil.searchDiariesByTag(
+        DiaryTemplateConst.memoirTag,
         domain: domain,
       );
+      final legacyMemoirList = await IsarUtil.searchDiariesByTag(
+        DiaryTemplateConst.legacyMemoirTag,
+        domain: domain,
+      );
+      final merged = <int, Diary>{};
+      for (final diary in [...memoirList, ...legacyMemoirList]) {
+        merged[diary.isarId] = diary;
+      }
+      state.searchList = merged.values.toList();
       state.queryList = [];
       state.totalCount.value = state.searchList.length;
       state.isSearching.value = false;
@@ -113,10 +123,7 @@ class SearchSheetLogic extends GetxController {
     );
     state.searchList = state.childhoodMemoirOnly.value
         ? searchList
-              .where(
-                (diary) =>
-                    diary.tags.contains(DiaryTemplateConst.childhoodMemoirTag),
-              )
+              .where((diary) => DiaryTemplateConst.hasMemoirTag(diary.tags))
               .toList()
         : searchList;
     state.totalCount.value = state.searchList.length;

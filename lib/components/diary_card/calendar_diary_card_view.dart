@@ -19,9 +19,7 @@ class CalendarDiaryCardComponent extends StatelessWidget with BasicCardLogic {
 
   @override
   Widget build(BuildContext context) {
-    final isChildhoodMemoir = diary.tags.contains(
-      DiaryTemplateConst.childhoodMemoirTag,
-    );
+    final isMemoir = DiaryTemplateConst.hasMemoirTag(diary.tags);
 
     Widget buildMemoirBadge() {
       return Container(
@@ -96,7 +94,7 @@ class CalendarDiaryCardComponent extends StatelessWidget with BasicCardLogic {
                       size: 10,
                       color: context.theme.colorScheme.secondary,
                     ),
-                    if (isChildhoodMemoir) buildMemoirBadge(),
+                    if (isMemoir) buildMemoirBadge(),
                   ],
                 ),
                 if (diary.title.isNotEmpty)

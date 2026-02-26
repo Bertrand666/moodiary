@@ -217,39 +217,15 @@ class EditLogic extends GetxController {
   }
 
   void _applyTemplate(DiaryTemplate? template) {
-    if (template != DiaryTemplate.childhoodMemoir) return;
+    if (template != DiaryTemplate.memoir) return;
     final l10n = Get.context?.l10n;
-    final title = l10n?.editTemplateChildhoodTitle ?? '我的童年回忆录';
-    final content =
-        l10n?.editTemplateChildhoodContent ??
-        '幼儿时期（3-6岁）\n'
-            '你最早记得的一件事是什么？\n'
-            '那时最依赖的人是谁？\n\n'
-            '小学时期（7-12岁）\n'
-            '最难忘的老师或同学是谁？\n'
-            '哪次考试或活动让你印象最深？\n\n'
-            '初中时期（13-15岁）\n'
-            '你当时最在意的事情是什么？\n'
-            '有没有一次让你改变看法的经历？\n\n'
-            '高中时期（16-18岁）\n'
-            '你第一次认真思考未来是什么时候？\n'
-            '那时的你和现在最大的不同是什么？\n\n'
-            '我的总结\n'
-            '回看这段童年经历，你想对当时的自己说什么？';
+    final title = l10n?.editTemplateChildhoodTitle ?? '我的回忆录';
 
     titleTextEditingController.text = title;
+    // 回忆录模板仅预填标题与标签，不再自动灌入提示正文
 
-    if (state.type == DiaryType.markdown) {
-      markdownTextEditingController?.text = content;
-    } else {
-      quillController?.replaceText(0, 0, '$content\n', null);
-      quillController?.moveCursorToPosition(content.length);
-    }
-
-    if (!state.currentDiary.tags.contains(
-      DiaryTemplateConst.childhoodMemoirTag,
-    )) {
-      state.currentDiary.tags.add(DiaryTemplateConst.childhoodMemoirTag);
+    if (!state.currentDiary.tags.contains(DiaryTemplateConst.memoirTag)) {
+      state.currentDiary.tags.add(DiaryTemplateConst.memoirTag);
     }
     state.totalCount.value = _toPlainText().length;
     update(['Tag']);

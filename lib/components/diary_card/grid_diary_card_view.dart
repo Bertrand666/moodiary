@@ -19,9 +19,7 @@ class GirdDiaryCardComponent extends StatelessWidget with BasicCardLogic {
 
   @override
   Widget build(BuildContext context) {
-    final isChildhoodMemoir = diary.tags.contains(
-      DiaryTemplateConst.childhoodMemoirTag,
-    );
+    final isMemoir = DiaryTemplateConst.hasMemoirTag(diary.tags);
 
     Widget buildMemoirBadge() {
       return Container(
@@ -107,7 +105,7 @@ class GirdDiaryCardComponent extends StatelessWidget with BasicCardLogic {
                             size: 10,
                             color: context.theme.colorScheme.onSurfaceVariant,
                           ),
-                          if (isChildhoodMemoir) buildMemoirBadge(),
+                          if (isMemoir) buildMemoirBadge(),
                         ],
                       ),
                     ],

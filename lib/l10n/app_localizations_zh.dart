@@ -367,7 +367,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get homePageAddDiaryButton => '新建日记';
 
   @override
-  String get homeNewDiaryChildhoodMemoir => '童年回忆录';
+  String get homeNewDiaryChildhoodMemoir => '回忆录';
 
   @override
   String get homeNewDiaryRichText => '富文本';
@@ -657,7 +657,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diarySearch => '搜索';
 
   @override
-  String get diarySearchOnlyChildhoodMemoir => '仅看童年回忆录';
+  String get diarySearchOnlyChildhoodMemoir => '仅看回忆录';
 
   @override
   String diarySearchResult(Object count) {
@@ -803,7 +803,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get editChangeSuccess => '修改成功';
 
   @override
-  String get editTemplateChildhoodTitle => '我的童年回忆录';
+  String get editTemplateChildhoodTitle => '我的回忆录';
 
   @override
   String get editTemplateChildhoodContent =>

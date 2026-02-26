@@ -61,7 +61,7 @@ class IsarUtil {
   }
 
   static bool _isMemoirDiary(Diary diary) {
-    return diary.tags.contains(DiaryTemplateConst.childhoodMemoirTag);
+    return DiaryTemplateConst.hasMemoirTag(diary.tags);
   }
 
   static bool _matchDiaryDomain(Diary diary, DiaryDomain? domain) {
@@ -264,20 +264,23 @@ class IsarUtil {
   }
 
   static void _normalizeDiaryDomainTag(Diary diary) {
-    final hasMemoirTag = diary.tags.contains(
-      DiaryTemplateConst.childhoodMemoirTag,
-    );
+    final hasMemoirTag = DiaryTemplateConst.hasMemoirTag(diary.tags);
     final domain = hasMemoirTag
         ? DiaryDomain.memoir
         : DiaryDomain.fromValue(diary.domain);
     diary.domain = domain.value;
     if (domain == DiaryDomain.memoir) {
-      if (!hasMemoirTag) {
-        diary.tags.add(DiaryTemplateConst.childhoodMemoirTag);
+      diary.tags.removeWhere(
+        (tag) => tag == DiaryTemplateConst.legacyMemoirTag,
+      );
+      if (!diary.tags.contains(DiaryTemplateConst.memoirTag)) {
+        diary.tags.add(DiaryTemplateConst.memoirTag);
       }
     } else {
       diary.tags.removeWhere(
-        (tag) => tag == DiaryTemplateConst.childhoodMemoirTag,
+        (tag) =>
+            tag == DiaryTemplateConst.memoirTag ||
+            tag == DiaryTemplateConst.legacyMemoirTag,
       );
     }
   }
