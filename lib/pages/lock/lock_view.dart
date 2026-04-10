@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/l10n/l10n.dart';
 import 'package:moodiary/utils/auth_util.dart';
 
 import 'lock_logic.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class LockPage extends StatelessWidget {
   const LockPage({super.key});
@@ -104,7 +105,7 @@ class LockPage extends StatelessWidget {
                             )
                             : const FaIcon(
                               FontAwesomeIcons.lock,
-                              key: ValueKey('lock'),
+                              key: ValueKey(PrefKeys.lock),
                             ),
                   );
                 }),

@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
@@ -24,6 +24,7 @@ import 'package:moodiary/utils/file_util.dart';
 import 'package:moodiary/utils/webdav_util.dart';
 import 'package:path/path.dart';
 import 'package:uuid/uuid.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class IsarUtil {
   static late final Isar _isar;
@@ -256,7 +257,7 @@ class IsarUtil {
       // 清理本地媒体文件
       await FileUtil.cleanUpOldMediaFiles(oldDiary, newDiary);
       if (WebDavUtil().hasOption &&
-          PrefUtil.getValue<bool>('autoSyncAfterChange') == true) {
+          PrefUtil.getValue<bool>(PrefKeys.autoSyncAfterChange) == true) {
         unawaited(
           WebDavUtil().updateSingleDiary(
             oldDiary: oldDiary,
@@ -266,7 +267,7 @@ class IsarUtil {
       }
     } else {
       if (WebDavUtil().hasOption &&
-          PrefUtil.getValue<bool>('autoSyncAfterChange') == true) {
+          PrefUtil.getValue<bool>(PrefKeys.autoSyncAfterChange) == true) {
         unawaited(WebDavUtil().uploadSingleDiary(newDiary));
       }
     }

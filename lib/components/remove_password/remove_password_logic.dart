@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/pages/home/setting/setting_logic.dart';
@@ -7,6 +7,7 @@ import 'package:moodiary/persistence/secure_storage.dart';
 import 'package:moodiary/utils/notice_util.dart';
 
 import 'remove_password_state.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class RemovePasswordLogic extends GetxController
     with GetSingleTickerProviderStateMixin {
@@ -24,10 +25,10 @@ class RemovePasswordLogic extends GetxController
   @override
   void onReady() async {
     // 将旧版本 SharedPreferences 中的明文密码自动迁移到 SecureStorage
-    final oldPassword = PrefUtil.getValue<String>('password');
+    final oldPassword = PrefUtil.getValue<String>(PrefKeys.password);
     if (oldPassword != null && oldPassword.isNotEmpty) {
       await SecureStorageUtil.setValue('lockPassword', oldPassword);
-      await PrefUtil.removeValue('password');
+      await PrefUtil.removeValue(PrefKeys.password);
     }
     state.realPassword =
         await SecureStorageUtil.getValue('lockPassword') ?? '';
@@ -88,11 +89,11 @@ class RemovePasswordLogic extends GetxController
 
   Future<void> removePassword(BuildContext context) async {
     //lock标记为false说明关闭密码
-    await PrefUtil.setValue<bool>('lock', false);
+    await PrefUtil.setValue<bool>(PrefKeys.lock, false);
     //移除 SecureStorage 中的密码
     await SecureStorageUtil.remove('lockPassword');
     settingLogic.state.lock = false;
-    settingLogic.update(['Lock']);
+    settingLogic.update([PrefKeys.lock]);
     toast.success(message: '关闭成功');
 
     if (context.mounted) Navigator.pop(context);

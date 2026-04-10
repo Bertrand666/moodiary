@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/common/values/diary_domain.dart';
@@ -9,6 +9,7 @@ import 'package:moodiary/pages/edit/edit_args.dart';
 import 'package:moodiary/pages/home/diary/diary_logic.dart';
 import 'package:moodiary/persistence/pref.dart';
 import 'package:moodiary/router/app_routes.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class HomeLogic extends GetxController with GetTickerProviderStateMixin {
   RxBool isFabExpanded = false.obs;
@@ -75,8 +76,8 @@ class HomeLogic extends GetxController with GetTickerProviderStateMixin {
   }
 
   void _lockPage() {
-    if (PrefUtil.getValue<bool>('lock') == true &&
-        PrefUtil.getValue<bool>('lockNow') == true) {
+    if (PrefUtil.getValue<bool>(PrefKeys.lock) == true &&
+        PrefUtil.getValue<bool>(PrefKeys.lockNow) == true) {
       if (Get.currentRoute != AppRoutes.editPage &&
           Get.currentRoute != AppRoutes.sharePage) {
         Get.toNamed(AppRoutes.lockPage, arguments: 'pause');
@@ -85,7 +86,7 @@ class HomeLogic extends GetxController with GetTickerProviderStateMixin {
   }
 
   void _privacyMode({required bool isEnable}) {
-    if (PrefUtil.getValue<bool>('backendPrivacy') == true) {
+    if (PrefUtil.getValue<bool>(PrefKeys.backendPrivacy) == true) {
       isEnable
           ? frostedGlassOverlayLogic.enable()
           : frostedGlassOverlayLogic.disable();

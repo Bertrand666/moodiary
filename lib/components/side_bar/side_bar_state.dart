@@ -2,6 +2,7 @@
 // import 'package:moodiary/persistence/pref.dart';
 // import 'package:package_info_plus/package_info_plus.dart';
 // import 'package:get/get.dart';
+
 //
 // class SideBarState {
 //   var packageInfo = Rx<PackageInfo?>(null);
@@ -12,18 +13,18 @@
 //   late DateTime nowTime;
 //   late RxString imageUrl;
 //
-//   //澶╂皵
+//   //天气
 //   late RxList<String> weatherResponse;
 //
 //   late bool getWeather;
 //
 //   SideBarState() {
-//     //鑾峰彇淇℃伅
+//     //获取信息
 //     hitokoto = ''.obs;
 //     nowTime = DateTime.now();
 //     imageUrl = ''.obs;
 //     weatherResponse = <String>[].obs;
-//     getWeather = PrefUtil.getValue<bool>('getWeather')!;
+//     getWeather = PrefUtil.getValue<bool>(PrefKeys.getWeather)!;
 //
 //     ///Initialize variables
 //   }

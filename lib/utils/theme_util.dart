@@ -1,4 +1,4 @@
-import 'package:dartx/dartx.dart';
+﻿import 'package:dartx/dartx.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +13,7 @@ import 'package:moodiary/persistence/pref.dart';
 import 'package:moodiary/utils/file_util.dart';
 import 'package:moodiary/utils/font_util.dart';
 import 'package:moodiary/utils/log_util.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class ThemeUtil {
   ThemeUtil._();
@@ -181,17 +182,17 @@ class ThemeUtil {
   Future<void> buildTheme() async {
     await findDynamicColor();
 
-    var color = PrefUtil.getValue<int>('color');
+    var color = PrefUtil.getValue<int>(PrefKeys.color);
 
     // 如果是首次打开软件，还没有设置配色，检查是否支持动态配色
     if (color == null) {
       // 如果支持动态配色，设置为动态配色
       if (supportDynamic) {
-        PrefUtil.setValue('color', -1);
+        PrefUtil.setValue(PrefKeys.color, -1);
         color = -1;
       } else {
         // 否则设置为默认配色
-        PrefUtil.setValue('color', 0);
+        PrefUtil.setValue(PrefKeys.color, 0);
         color = 0;
       }
     }
@@ -214,7 +215,7 @@ class ThemeUtil {
             ? darkDynamic!
             : buildColorScheme(normalColor, Brightness.dark, color);
 
-    final customFont = PrefUtil.getValue<String>('customFont');
+    final customFont = PrefUtil.getValue<String>(PrefKeys.customFont);
 
     // 加载自定义字体
     if (customFont.isNotNullOrBlank) {
@@ -362,7 +363,7 @@ class ThemeUtil {
   }
 
   (ThemeData, ThemeData) getThemeData() {
-    final isDynamic = supportDynamic && PrefUtil.getValue<int>('color') == -1;
+    final isDynamic = supportDynamic && PrefUtil.getValue<int>(PrefKeys.color) == -1;
     if (isDynamic) {
       return (
         _lightTheme?.copyWith(

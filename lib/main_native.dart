@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
@@ -26,6 +26,7 @@ import 'package:moodiary/utils/log_util.dart';
 import 'package:moodiary/utils/media_util.dart';
 import 'package:moodiary/utils/theme_util.dart';
 import 'package:moodiary/utils/webdav_util.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 Future<void> _initSystem() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,7 +48,7 @@ Future<void> _initSystem() async {
 
 Future<Locale> _findLanguage() async {
   Language language = Language.values.firstWhere(
-    (e) => e.languageCode == PrefUtil.getValue<String>('language')!,
+    (e) => e.languageCode == PrefUtil.getValue<String>(PrefKeys.language)!,
     orElse: () => Language.system,
   );
   if (language == Language.system) {
@@ -73,8 +74,8 @@ Future<void> _platFormOption() async {
 }
 
 String _getInitialRoute() {
-  if (PrefUtil.getValue<bool>('lock')!) return AppRoutes.lockPage;
-  if (PrefUtil.getValue<bool>('firstStart')!) return AppRoutes.startPage;
+  if (PrefUtil.getValue<bool>(PrefKeys.lock)!) return AppRoutes.lockPage;
+  if (PrefUtil.getValue<bool>(PrefKeys.firstStart)!) return AppRoutes.startPage;
   return AppRoutes.homePage;
 }
 
@@ -116,7 +117,7 @@ class Moodiary extends StatelessWidget {
         final mediaQuery = MediaQuery(
           data: context.mediaQuery.copyWith(
             textScaler: TextScaler.linear(
-              PrefUtil.getValue<double>('fontScale')!,
+              PrefUtil.getValue<double>(PrefKeys.fontScale)!,
             ),
           ),
           child: child!,
@@ -138,7 +139,7 @@ class Moodiary extends StatelessWidget {
       theme: theme.$1,
       darkTheme: theme.$2,
       locale: locale,
-      themeMode: ThemeMode.values[PrefUtil.getValue<int>('themeMode')!],
+      themeMode: ThemeMode.values[PrefUtil.getValue<int>(PrefKeys.themeMode)!],
       getPages: AppPages.routes,
       localizationsDelegates: const [
         ...AppLocalizations.localizationsDelegates,

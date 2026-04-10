@@ -1,3 +1,4 @@
+﻿import 'package:moodiary/l10n/l10n.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/common/models/isar/category.dart';
 import 'package:moodiary/common/values/diary_domain.dart';
@@ -50,10 +51,10 @@ class CategoryManagerLogic extends GetxController {
       } else {
         await getCategory();
         await diaryLogic?.updateCategory();
-        toast.info(message: '分类已存在，已自动添加后缀');
+        toast.info(message: Get.context!.l10n.categoryNameExist);
       }
     } else {
-      toast.info(message: '分类名称不能为空');
+      toast.info(message: Get.context!.l10n.categoryNameCannotBeEmpty);
     }
   }
 
@@ -68,17 +69,17 @@ class CategoryManagerLogic extends GetxController {
       await getCategory();
       await diaryLogic?.updateCategory();
     } else {
-      toast.info(message: '分类名称不能为空');
+      toast.info(message: Get.context!.l10n.categoryNameCannotBeEmpty);
     }
   }
 
   Future<void> deleteCategory(String id) async {
     if (await IsarUtil.deleteACategory(id)) {
-      toast.success(message: '删除成功');
+      toast.success(message: Get.context!.l10n.categoryDeleteSuccess);
       await getCategory();
       await diaryLogic?.updateCategory();
     } else {
-      toast.error(message: '删除失败，当前分类下还有日记');
+      toast.error(message: Get.context!.l10n.categoryDeleteFailNotEmpty);
     }
   }
 }

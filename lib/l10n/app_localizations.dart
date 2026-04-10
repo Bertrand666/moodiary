@@ -1873,6 +1873,300 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'腾讯云'**
   String get labTencentCloud;
+
+  /// No description provided for @labLogOpenCacheFolder.
+  ///
+  /// In zh, this message translates to:
+  /// **'打开日志缓存文件夹'**
+  String get labLogOpenCacheFolder;
+
+  /// No description provided for @noticeSyncingDoNotLeave.
+  ///
+  /// In zh, this message translates to:
+  /// **'同步中，请不要离开页面'**
+  String get noticeSyncingDoNotLeave;
+
+  /// No description provided for @noticeCreatingBackup.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在创建备份'**
+  String get noticeCreatingBackup;
+
+  /// No description provided for @permNoMedia.
+  ///
+  /// In zh, this message translates to:
+  /// **'未授予相册/相机权限，去手动开启'**
+  String get permNoMedia;
+
+  /// No description provided for @categoryNameCannotBeEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'名称不能为空'**
+  String get categoryNameCannotBeEmpty;
+
+  /// No description provided for @fontDeleteSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除成功'**
+  String get fontDeleteSuccess;
+
+  /// No description provided for @categoryNameExist.
+  ///
+  /// In zh, this message translates to:
+  /// **'已存在，自定义后缀'**
+  String get categoryNameExist;
+
+  /// No description provided for @noticeBackupApplySuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'成功应用备份'**
+  String get noticeBackupApplySuccess;
+
+  /// No description provided for @userLogout.
+  ///
+  /// In zh, this message translates to:
+  /// **'退出登录'**
+  String get userLogout;
+
+  /// No description provided for @noticeBackupExportComplete.
+  ///
+  /// In zh, this message translates to:
+  /// **'备份导出完成，请保管好文件'**
+  String get noticeBackupExportComplete;
+
+  /// No description provided for @noticeSendMsg.
+  ///
+  /// In zh, this message translates to:
+  /// **'发送消息'**
+  String get noticeSendMsg;
+
+  /// No description provided for @webdavUploadFail.
+  ///
+  /// In zh, this message translates to:
+  /// **'同步上传失败，请检查网络连接'**
+  String get webdavUploadFail;
+
+  /// No description provided for @loginLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'登录'**
+  String get loginLabel;
+
+  /// No description provided for @fontParseSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'解析成功'**
+  String get fontParseSuccess;
+
+  /// No description provided for @labTestImageLink.
+  ///
+  /// In zh, this message translates to:
+  /// **'测试图片直链'**
+  String get labTestImageLink;
+
+  /// No description provided for @updateIsLatest.
+  ///
+  /// In zh, this message translates to:
+  /// **'已经是最新版本'**
+  String get updateIsLatest;
+
+  /// No description provided for @videoPlaySpeed.
+  ///
+  /// In zh, this message translates to:
+  /// **'播放速度'**
+  String get videoPlaySpeed;
+
+  /// No description provided for @mapLocateFinding.
+  ///
+  /// In zh, this message translates to:
+  /// **'定位中...'**
+  String get mapLocateFinding;
+
+  /// No description provided for @labTestNotifyPass.
+  ///
+  /// In zh, this message translates to:
+  /// **'通知测试通过'**
+  String get labTestNotifyPass;
+
+  /// No description provided for @emptyLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'无'**
+  String get emptyLabel;
+
+  /// No description provided for @labClearLogTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'一键清空日志'**
+  String get labClearLogTitle;
+
+  /// No description provided for @userAgreement.
+  ///
+  /// In zh, this message translates to:
+  /// **'用户协议'**
+  String get userAgreement;
+
+  /// No description provided for @authSecurityVerify.
+  ///
+  /// In zh, this message translates to:
+  /// **'安全验证'**
+  String get authSecurityVerify;
+
+  /// No description provided for @shareSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'已保存到相册'**
+  String get shareSuccess;
+
+  /// No description provided for @permNoLocation.
+  ///
+  /// In zh, this message translates to:
+  /// **'未授予位置权限'**
+  String get permNoLocation;
+
+  /// No description provided for @fontFetchFail.
+  ///
+  /// In zh, this message translates to:
+  /// **'字体获取失败'**
+  String get fontFetchFail;
+
+  /// No description provided for @shareFail.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存失败'**
+  String get shareFail;
+
+  /// No description provided for @labLogFileTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'日志文件'**
+  String get labLogFileTitle;
+
+  /// No description provided for @labLogClearSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'日志清除成功'**
+  String get labLogClearSuccess;
+
+  /// No description provided for @noticeSelectModel.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择模型：'**
+  String get noticeSelectModel;
+
+  /// No description provided for @fontApplySuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'应用成功'**
+  String get fontApplySuccess;
+
+  /// No description provided for @labLogRequestPass.
+  ///
+  /// In zh, this message translates to:
+  /// **'请求成功'**
+  String get labLogRequestPass;
+
+  /// No description provided for @labTestNotifyFail.
+  ///
+  /// In zh, this message translates to:
+  /// **'通知测试失败'**
+  String get labTestNotifyFail;
+
+  /// No description provided for @categoryDeleteFailNotEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除失败，该分类下还有日记'**
+  String get categoryDeleteFailNotEmpty;
+
+  /// No description provided for @labLogRequestFail.
+  ///
+  /// In zh, this message translates to:
+  /// **'请求失败'**
+  String get labLogRequestFail;
+
+  /// No description provided for @noticeBackupExportFail.
+  ///
+  /// In zh, this message translates to:
+  /// **'备份导出失败，权限被拒绝'**
+  String get noticeBackupExportFail;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In zh, this message translates to:
+  /// **'隐私政策'**
+  String get privacyPolicy;
+
+  /// No description provided for @labLogSystemStart.
+  ///
+  /// In zh, this message translates to:
+  /// **'日志系统启动'**
+  String get labLogSystemStart;
+
+  /// No description provided for @webdavUpdateFail.
+  ///
+  /// In zh, this message translates to:
+  /// **'同步更新失败，请检查网络连接'**
+  String get webdavUpdateFail;
+
+  /// No description provided for @categoryDeleteSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除成功'**
+  String get categoryDeleteSuccess;
+
+  /// No description provided for @mapLocateSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'定位成功'**
+  String get mapLocateSuccess;
+
+  /// No description provided for @noticeBackupCancel.
+  ///
+  /// In zh, this message translates to:
+  /// **'已取消备份选择'**
+  String get noticeBackupCancel;
+
+  /// No description provided for @noticeUserInfo.
+  ///
+  /// In zh, this message translates to:
+  /// **'用户信息'**
+  String get noticeUserInfo;
+
+  /// No description provided for @fontDisplayDifferentWorld.
+  ///
+  /// In zh, this message translates to:
+  /// **'看到不同的世界'**
+  String get fontDisplayDifferentWorld;
+
+  /// No description provided for @registerLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'注册'**
+  String get registerLabel;
+
+  /// No description provided for @labTestNotifyTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'测试通知'**
+  String get labTestNotifyTitle;
+
+  /// No description provided for @fontDisplayNewLayout.
+  ///
+  /// In zh, this message translates to:
+  /// **'全新的排版'**
+  String get fontDisplayNewLayout;
+
+  /// No description provided for @recycleRecoverSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'已恢复到日记列表'**
+  String get recycleRecoverSuccess;
+
+  /// No description provided for @fontAddSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加成功'**
+  String get fontAddSuccess;
 }
 
 class _AppLocalizationsDelegate

@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:auto_size_text_field/auto_size_text_field.dart';
@@ -31,6 +31,7 @@ import 'package:moodiary/l10n/l10n.dart';
 import 'package:moodiary/utils/theme_util.dart';
 
 import 'edit_logic.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class EditPage extends StatelessWidget {
   const EditPage({super.key});
@@ -611,7 +612,7 @@ class EditPage extends StatelessWidget {
             ),
           ),
           GetBuilder<EditLogic>(
-            id: 'Weather',
+            id: PrefKeys.weather,
             builder: (_) {
               return AdaptiveListTile(
                 title: context.l10n.editWeather,

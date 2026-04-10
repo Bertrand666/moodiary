@@ -1,3 +1,4 @@
+﻿import 'package:moodiary/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:markdown_widget/markdown_widget.dart';
@@ -11,7 +12,7 @@ class PrivacyPage extends StatelessWidget {
     // final state = Bind.find<PrivacyLogic>().state;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('隐私政策')),
+      appBar: AppBar(title: Text(Get.context!.l10n.privacyPolicy)),
       body: MarkdownWidget(
         data: '''# 隐私政策
 

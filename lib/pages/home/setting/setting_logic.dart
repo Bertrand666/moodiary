@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -13,6 +13,7 @@ import 'package:moodiary/utils/file_util.dart';
 import 'package:moodiary/utils/notice_util.dart';
 
 import 'setting_state.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class SettingLogic extends GetxController {
   final SettingState state = SettingState();
@@ -54,16 +55,16 @@ class SettingLogic extends GetxController {
 
   //本地化
   Future<void> local(bool value) async {
-    await PrefUtil.setValue<bool>('local', value);
+    await PrefUtil.setValue<bool>(PrefKeys.local, value);
     state.local = value;
-    update(['Local']);
+    update([PrefKeys.local]);
   }
 
   //立即锁定
   Future<void> lockNow(bool value) async {
-    await PrefUtil.setValue<bool>('lockNow', value);
+    await PrefUtil.setValue<bool>(PrefKeys.lockNow, value);
     state.lockNow = value;
-    update(['Lock']);
+    update([PrefKeys.lock]);
   }
 
   void toAnalysePage() {
@@ -72,7 +73,7 @@ class SettingLogic extends GetxController {
   }
 
   Future<void> toMap() async {
-    if (PrefUtil.getValue<String>('tiandituKey') != null) {
+    if (PrefUtil.getValue<String>(PrefKeys.tiandituKey) != null) {
       HapticFeedback.selectionClick();
       Get.toNamed(AppRoutes.mapPage);
     } else {
@@ -81,8 +82,8 @@ class SettingLogic extends GetxController {
   }
 
   Future<void> toAi() async {
-    if (PrefUtil.getValue<String>('tencentId') != null &&
-        PrefUtil.getValue<String>('tencentKey') != null) {
+    if (PrefUtil.getValue<String>(PrefKeys.tencentId) != null &&
+        PrefUtil.getValue<String>(PrefKeys.tencentKey) != null) {
       HapticFeedback.selectionClick();
       Get.toNamed(AppRoutes.assistantPage);
     } else {
@@ -100,7 +101,7 @@ class SettingLogic extends GetxController {
   }
 
   Future<void> changeBackendPrivacy(bool value) async {
-    await PrefUtil.setValue<bool>('backendPrivacy', value);
+    await PrefUtil.setValue<bool>(PrefKeys.backendPrivacy, value);
     state.backendPrivacy.value = value;
   }
 
@@ -133,7 +134,7 @@ class SettingLogic extends GetxController {
   Future<void> setCustomTitle({required String title}) async {
     state.customTitle = title.trim();
     update(['CustomTitle']);
-    await PrefUtil.setValue<String>('customTitleName', state.customTitle);
+    await PrefUtil.setValue<String>(PrefKeys.customTitleName, state.customTitle);
     for (final domain in DiaryDomain.values) {
       if (Bind.isRegistered<DiaryLogic>(tag: domain.logicTag)) {
         Bind.find<DiaryLogic>(tag: domain.logicTag).updateTitle();

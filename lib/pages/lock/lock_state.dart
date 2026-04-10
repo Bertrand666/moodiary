@@ -1,5 +1,6 @@
-import 'package:get/get.dart';
+﻿import 'package:get/get.dart';
 import 'package:moodiary/persistence/pref.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class LockState {
   late RxString password;
@@ -10,7 +11,7 @@ class LockState {
   late String? lockType;
 
   bool get supportBiometrics =>
-      PrefUtil.getValue<bool>('supportBiometrics') ?? false;
+      PrefUtil.getValue<bool>(PrefKeys.supportBiometrics) ?? false;
 
   RxBool isCheck = false.obs;
 

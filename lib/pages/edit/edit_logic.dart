@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -37,6 +37,7 @@ import 'package:path/path.dart';
 import 'package:uuid/uuid.dart';
 
 import 'edit_state.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class EditLogic extends GetxController {
   final EditState state = EditState();
@@ -399,7 +400,7 @@ class EditLogic extends GetxController {
     state.imageFileList.removeWhere((file) => file.path == path);
     await FileUtil.deleteFile(path);
     //Get.backLegacy();
-    toast.success(message: '删除成功');
+    toast.success(message: Get.context!.l10n.categoryDeleteSuccess);
     update(['Image']);
   }
 
@@ -574,13 +575,13 @@ class EditLogic extends GetxController {
 
   //获取天气，同时获取定位
   Future<void> getPositionAndWeather({required BuildContext context}) async {
-    final key = PrefUtil.getValue<String>('qweatherKey');
-    final apiHost = PrefUtil.getValue<String>('qweatherApiHost');
+    final key = PrefUtil.getValue<String>(PrefKeys.qweatherKey);
+    final apiHost = PrefUtil.getValue<String>(PrefKeys.qweatherApiHost);
     if (key.isNullOrBlank || apiHost.isNullOrBlank) return;
 
     try {
       state.isProcessing = true;
-      update(['Weather']);
+      update([PrefKeys.weather]);
 
       // 获取定位
       final position = await Api.updatePosition(context);
@@ -604,10 +605,10 @@ class EditLogic extends GetxController {
       if (context.mounted) {
         toast.success(message: context.l10n.weatherSuccess);
       }
-      update(['Weather']);
+      update([PrefKeys.weather]);
     } catch (e) {
       state.isProcessing = false;
-      update(['Weather']);
+      update([PrefKeys.weather]);
       if (context.mounted) {
         toast.error(message: context.l10n.weatherError);
       }
@@ -616,7 +617,7 @@ class EditLogic extends GetxController {
 
   void _handleError(BuildContext context, String message) {
     state.isProcessing = false;
-    update(['Weather']);
+    update([PrefKeys.weather]);
     if (context.mounted) {
       toast.error(message: message);
     }
@@ -675,7 +676,7 @@ class EditLogic extends GetxController {
     // 删除对应的组件
     state.audioNameList.removeWhere((name) => path.endsWith(name));
     update(['Audio']);
-    toast.success(message: '删除成功');
+    toast.success(message: Get.context!.l10n.categoryDeleteSuccess);
   }
 
   //添加一个标签

@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -16,6 +16,7 @@ import 'package:moodiary/persistence/pref.dart';
 import 'package:moodiary/utils/http_util.dart';
 import 'package:moodiary/utils/notice_util.dart';
 import 'package:moodiary/utils/signature_util.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class Api {
   static Future<Stream<String>?> getHunYuan(
@@ -93,11 +94,11 @@ class Api {
       final parameters = {
         'location':
             '${double.parse(position.longitude.toStringAsFixed(2))},${double.parse(position.latitude.toStringAsFixed(2))}',
-        'key': PrefUtil.getValue<String>('qweatherKey'),
+        'key': PrefUtil.getValue<String>(PrefKeys.qweatherKey),
         'lang': local,
       };
       final res = await HttpUtil().get(
-        'https://${PrefUtil.getValue<String>('qweatherApiHost')}/geo/v2/city/lookup',
+        'https://${PrefUtil.getValue<String>(PrefKeys.qweatherApiHost)}/geo/v2/city/lookup',
         parameters: parameters,
       );
       final geo = await compute(
@@ -127,11 +128,11 @@ class Api {
     final parameters = {
       'location':
           '${double.parse(position.longitude.toStringAsFixed(2))},${double.parse(position.latitude.toStringAsFixed(2))}',
-      'key': PrefUtil.getValue<String>('qweatherKey'),
+      'key': PrefUtil.getValue<String>(PrefKeys.qweatherKey),
       'lang': local,
     };
     final res = await HttpUtil().get(
-      'https://${PrefUtil.getValue<String>('qweatherApiHost')}/v7/weather/now',
+      'https://${PrefUtil.getValue<String>(PrefKeys.qweatherApiHost)}/v7/weather/now',
       parameters: parameters,
     );
     final weather = await compute(

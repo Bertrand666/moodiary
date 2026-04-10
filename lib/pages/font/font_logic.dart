@@ -1,3 +1,4 @@
+﻿import 'package:moodiary/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/common/models/isar/font.dart';
@@ -11,6 +12,7 @@ import 'package:moodiary/utils/theme_util.dart';
 import 'package:path/path.dart';
 
 import 'font_state.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class FontLogic extends GetxController with GetSingleTickerProviderStateMixin {
   final FontState state = FontState();
@@ -88,13 +90,13 @@ class FontLogic extends GetxController with GetSingleTickerProviderStateMixin {
       fontName: newFont.fontFamily,
       fontPath: FileUtil.getRealPath('font', newFont.fontFileName),
     );
-    toast.success(message: '添加成功');
+    toast.success(message: Get.context!.l10n.fontAddSuccess);
   }
 
   //更改字体
   Future<void> changeFontTheme() async {
     await PrefUtil.setValue<String>(
-      'customFont',
+      PrefKeys.customFont,
       state.currentFontFamily.value,
     );
     await ThemeUtil.forceUpdateTheme();
@@ -112,12 +114,12 @@ class FontLogic extends GetxController with GetSingleTickerProviderStateMixin {
     await IsarUtil.deleteFont(font.id);
     await FileUtil.deleteFile(FileUtil.getRealPath('font', font.fontFileName));
     state.fontList.remove(font);
-    toast.success(message: '删除成功');
+    toast.success(message: Get.context!.l10n.categoryDeleteSuccess);
   }
 
   //保存设置
   Future<void> saveFontScale() async {
-    await PrefUtil.setValue<double>('fontScale', state.fontScale.value);
+    await PrefUtil.setValue<double>(PrefKeys.fontScale, state.fontScale.value);
     await changeFontTheme();
     await Get.forceAppUpdate();
     toast.success(message: '保存成功');

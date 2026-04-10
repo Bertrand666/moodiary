@@ -948,4 +948,154 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get labTencentCloud => 'Tencent Cloud';
+
+  @override
+  String get labLogOpenCacheFolder => 'Open log temp folder';
+
+  @override
+  String get noticeSyncingDoNotLeave => 'Syncing, please do not leave';
+
+  @override
+  String get noticeCreatingBackup => 'Creating backup';
+
+  @override
+  String get permNoMedia => 'Media permission denied, please enable manually';
+
+  @override
+  String get categoryNameCannotBeEmpty => 'Name cannot be empty';
+
+  @override
+  String get fontDeleteSuccess => 'Delete success';
+
+  @override
+  String get categoryNameExist => 'Already exists, use custom suffix';
+
+  @override
+  String get noticeBackupApplySuccess => 'Backup applied successfully';
+
+  @override
+  String get userLogout => 'Logout';
+
+  @override
+  String get noticeBackupExportComplete =>
+      'Backup exported, please keep it safe';
+
+  @override
+  String get noticeSendMsg => 'Send Message';
+
+  @override
+  String get webdavUploadFail => 'Sync upload failed, check network';
+
+  @override
+  String get loginLabel => 'Login';
+
+  @override
+  String get fontParseSuccess => 'Parse success';
+
+  @override
+  String get labTestImageLink => 'Test image link';
+
+  @override
+  String get updateIsLatest => 'Already the latest version';
+
+  @override
+  String get videoPlaySpeed => 'Speed';
+
+  @override
+  String get mapLocateFinding => 'Locating...';
+
+  @override
+  String get labTestNotifyPass => 'Test notify passed';
+
+  @override
+  String get emptyLabel => 'None';
+
+  @override
+  String get labClearLogTitle => 'Clear all logs';
+
+  @override
+  String get userAgreement => 'User Agreement';
+
+  @override
+  String get authSecurityVerify => 'Security Verification';
+
+  @override
+  String get shareSuccess => 'Saved to gallery';
+
+  @override
+  String get permNoLocation => 'Location permission denied';
+
+  @override
+  String get fontFetchFail => 'Font fetch failed';
+
+  @override
+  String get shareFail => 'Save failed';
+
+  @override
+  String get labLogFileTitle => 'Log File';
+
+  @override
+  String get labLogClearSuccess => 'Log cleared successfully';
+
+  @override
+  String get noticeSelectModel => 'Select Model:';
+
+  @override
+  String get fontApplySuccess => 'Apply success';
+
+  @override
+  String get labLogRequestPass => 'Request success';
+
+  @override
+  String get labTestNotifyFail => 'Test notify failed';
+
+  @override
+  String get categoryDeleteFailNotEmpty =>
+      'Delete failed, category is not empty';
+
+  @override
+  String get labLogRequestFail => 'Request failed';
+
+  @override
+  String get noticeBackupExportFail =>
+      'Backup export failed, permission denied';
+
+  @override
+  String get privacyPolicy => 'Privacy Policy';
+
+  @override
+  String get labLogSystemStart => 'Log system started';
+
+  @override
+  String get webdavUpdateFail => 'Sync update failed, check network';
+
+  @override
+  String get categoryDeleteSuccess => 'Delete success';
+
+  @override
+  String get mapLocateSuccess => 'Locate success';
+
+  @override
+  String get noticeBackupCancel => 'Backup selection canceled';
+
+  @override
+  String get noticeUserInfo => 'User Info';
+
+  @override
+  String get fontDisplayDifferentWorld => 'Different World';
+
+  @override
+  String get registerLabel => 'Register';
+
+  @override
+  String get labTestNotifyTitle => 'Test Notify';
+
+  @override
+  String get fontDisplayNewLayout => 'New Layout';
+
+  @override
+  String get recycleRecoverSuccess => 'Recovered to diary list';
+
+  @override
+  String get fontAddSuccess => 'Add success';
 }

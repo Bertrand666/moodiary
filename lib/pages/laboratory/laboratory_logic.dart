@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:io';
 
 import 'package:get/get.dart';
@@ -9,11 +9,12 @@ import 'package:moodiary/utils/cache_util.dart';
 import 'package:moodiary/utils/file_util.dart';
 import 'package:moodiary/utils/notice_util.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class LaboratoryLogic extends GetxController {
   Future<bool> setTencentID({required String id}) async {
     try {
-      await PrefUtil.setValue<String>('tencentId', id);
+      await PrefUtil.setValue<String>(PrefKeys.tencentId, id);
       return true;
     } catch (e) {
       return false;
@@ -24,7 +25,7 @@ class LaboratoryLogic extends GetxController {
 
   Future<bool> setTencentKey({required String key}) async {
     try {
-      await PrefUtil.setValue<String>('tencentKey', key);
+      await PrefUtil.setValue<String>(PrefKeys.tencentKey, key);
       return true;
     } catch (e) {
       return false;
@@ -35,7 +36,7 @@ class LaboratoryLogic extends GetxController {
 
   Future<bool> setQweatherKey({required String key}) async {
     try {
-      await PrefUtil.setValue<String>('qweatherKey', key);
+      await PrefUtil.setValue<String>(PrefKeys.qweatherKey, key);
       return true;
     } catch (e) {
       return false;
@@ -46,7 +47,7 @@ class LaboratoryLogic extends GetxController {
 
   Future<bool> setQweatherApiHost({required String host}) async {
     try {
-      await PrefUtil.setValue<String>('qweatherApiHost', host);
+      await PrefUtil.setValue<String>(PrefKeys.qweatherApiHost, host);
       return true;
     } catch (e) {
       return false;
@@ -57,7 +58,7 @@ class LaboratoryLogic extends GetxController {
 
   Future<bool> setTiandituKey({required String key}) async {
     try {
-      await PrefUtil.setValue<String>('tiandituKey', key);
+      await PrefUtil.setValue<String>(PrefKeys.tiandituKey, key);
       return true;
     } catch (e) {
       return false;
@@ -83,7 +84,7 @@ class LaboratoryLogic extends GetxController {
   }
 
   Future<bool> aesTest() async {
-    final key = await AesUtil.deriveKey(salt: 'salt', userKey: 'password');
+    final key = await AesUtil.deriveKey(salt: 'salt', userKey: PrefKeys.password);
     final encrypted = await AesUtil.encrypt(key: key, data: 'Hello World');
     final decrypted = await AesUtil.decrypt(key: key, encryptedData: encrypted);
     return decrypted == 'Hello World';

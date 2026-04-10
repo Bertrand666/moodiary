@@ -1,3 +1,5 @@
+﻿import 'package:get/get.dart';
+import 'package:moodiary/l10n/l10n.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
@@ -21,6 +23,7 @@ import 'package:moodiary/utils/lru.dart';
 import 'package:moodiary/utils/notice_util.dart';
 import 'package:path/path.dart';
 import 'package:uuid/uuid.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 enum ImageFormat {
   jpeg(extension: '.jpg'),
@@ -299,7 +302,7 @@ class MediaUtil {
     String outputPath,
     ImageFormat imageFormat,
   ) async {
-    if (PrefUtil.getValue<int>('quality') == 3) {
+    if (PrefUtil.getValue<int>(PrefKeys.quality) == 3) {
       await imageFile.saveTo(outputPath);
       return;
     }
@@ -322,7 +325,7 @@ class MediaUtil {
   }) async {
     final imageSize =
         size ??
-        switch (PrefUtil.getValue<int>('quality')) {
+        switch (PrefUtil.getValue<int>(PrefKeys.quality)) {
           0 => 720,
           1 => 1080,
           2 => 1440,
@@ -364,7 +367,7 @@ class MediaUtil {
     int? size,
     double? imageAspectRatio,
   }) async {
-    final quality = PrefUtil.getValue<int>('quality');
+    final quality = PrefUtil.getValue<int>(PrefKeys.quality);
     final imageSize =
         size ??
         switch (quality) {
@@ -397,7 +400,7 @@ class MediaUtil {
 
   //获取视频缩略图
   static Future<bool> _getVideoThumbnail(XFile xFile, destPath) async {
-    final quality = PrefUtil.getValue<int>('quality');
+    final quality = PrefUtil.getValue<int>(PrefKeys.quality);
     final height = switch (quality) {
       0 => 720,
       1 => 1080,
@@ -427,9 +430,9 @@ class MediaUtil {
       } else {
         await Gal.putImage(path, album: 'Moodiary');
       }
-      toast.success(message: '已保存到相册');
+      toast.success(message: Get.context!.l10n.shareSuccess);
     } catch (e) {
-      toast.error(message: '保存失败');
+      toast.error(message: Get.context!.l10n.shareFail);
     }
   }
 

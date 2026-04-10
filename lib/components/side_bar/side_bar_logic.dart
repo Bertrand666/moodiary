@@ -10,6 +10,7 @@
 // import 'package:url_launcher/url_launcher.dart';
 //
 // import 'side_bar_state.dart';
+
 //
 // class SideBarLogic extends GetxController {
 //   final SideBarState state = SideBarState();
@@ -26,15 +27,15 @@
 //   }
 //
 //   // Future<void> getWeather() async {
-//   //   var key = PrefUtil.getValue<String>('qweatherKey');
+//   //   var key = PrefUtil.getValue<String>(PrefKeys.qweatherKey);
 //   //   if (state.getWeather && key != null) {
 //   //     state.weatherResponse.value =
-//   //         await Utils().cacheUtil.getCacheList('weather', Api.updateWeather, maxAgeMillis: 15 * 60000) ?? [];
+//   //         await Utils().cacheUtil.getCacheList(PrefKeys.weather, Api.updateWeather, maxAgeMillis: 15 * 60000) ?? [];
 //   //   }
 //   // }
 //
 //   Future<void> getHitokoto() async {
-//     var res = await CacheUtil.getCacheList('hitokoto', Api.updateHitokoto,
+//     var res = await CacheUtil.getCacheList(PrefKeys.hitokoto, Api.updateHitokoto,
 //         maxAgeMillis: 15 * 60000);
 //     if (res != null) {
 //       state.hitokoto.value = res.first;
@@ -42,7 +43,7 @@
 //   }
 //
 //   Future<void> getImage() async {
-//     var url = await CacheUtil.getCacheList('bingImage', Api.updateImageUrl,
+//     var url = await CacheUtil.getCacheList(PrefKeys.bingImage, Api.updateImageUrl,
 //         maxAgeMillis: 6 * 60 * 60000);
 //     if (url != null) {
 //       state.imageUrl.value = url.first;
@@ -53,17 +54,17 @@
 //     state.packageInfo.value = await PackageUtil.getPackageInfo();
 //   }
 //
-//   //Ë∑≥ËΩ¨Âà∞ÂèçÈ¶àÈ°µ
+//   //Ã¯◊™µΩ∑¥¿°“≥
 //   Future<void> toReportPage() async {
 //     var uri = Uri(
 //         scheme: 'https',
 //         host: 'support.qq.com',
 //         path: 'products/650147',
 //         queryParameters: {
-//           'nickname': PrefUtil.getValue<String>('uuid'),
+//           'nickname': PrefUtil.getValue<String>(PrefKeys.uuid),
 //           'avatar':
 //               'https://txc.qq.com/static/desktop/img/products/def-product-logo.png',
-//           'openid': PrefUtil.getValue<String>('uuid')
+//           'openid': PrefUtil.getValue<String>(PrefKeys.uuid)
 //         });
 //     await launchUrl(uri, mode: LaunchMode.platformDefault);
 //   }

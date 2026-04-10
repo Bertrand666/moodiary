@@ -1,8 +1,9 @@
-import 'package:cross_file/cross_file.dart';
+﻿import 'package:cross_file/cross_file.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/common/models/isar/diary.dart';
 import 'package:moodiary/common/values/diary_type.dart';
 import 'package:moodiary/persistence/pref.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class EditState {
   // 当前编辑的日记对象
@@ -56,20 +57,20 @@ class EditState {
   RxBool renderMarkdown = false.obs;
 
   // 自动获取天气
-  bool get autoWeather => PrefUtil.getValue<bool>('autoWeather')!;
+  bool get autoWeather => PrefUtil.getValue<bool>(PrefKeys.autoWeather)!;
 
   // 首行缩进
   bool get firstLineIndent =>
-      (PrefUtil.getValue<bool>('firstLineIndent')!) && type == DiaryType.text;
+      (PrefUtil.getValue<bool>(PrefKeys.firstLineIndent)!) && type == DiaryType.text;
 
   // 自动分类
-  bool get autoCategory => PrefUtil.getValue<bool>('autoCategory')!;
+  bool get autoCategory => PrefUtil.getValue<bool>(PrefKeys.autoCategory)!;
 
   // 展示写作时长
-  bool get showWriteTime => PrefUtil.getValue<bool>('showWritingTime')!;
+  bool get showWriteTime => PrefUtil.getValue<bool>(PrefKeys.showWritingTime)!;
 
   // 展示字数统计
-  bool get showWordCount => PrefUtil.getValue<bool>('showWordCount')!;
+  bool get showWordCount => PrefUtil.getValue<bool>(PrefKeys.showWordCount)!;
 
   EditState();
 }

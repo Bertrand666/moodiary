@@ -1,3 +1,4 @@
+﻿import 'package:moodiary/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:markdown_widget/markdown_widget.dart';
@@ -8,7 +9,7 @@ class AgreementPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('用户协议')),
+      appBar: AppBar(title: Text(Get.context!.l10n.userAgreement)),
       body: MarkdownWidget(
         data: '''# 用户协议
 

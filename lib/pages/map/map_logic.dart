@@ -1,3 +1,4 @@
+﻿import 'package:moodiary/l10n/l10n.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -52,7 +53,7 @@ class MapLogic extends GetxController {
   Future<void> toCurrentPosition() async {
     toast.info(message: '定位中');
     final currentPosition = await getLocation();
-    toast.success(message: '定位成功');
+    toast.success(message: Get.context!.l10n.mapLocateSuccess);
     mapController.move(currentPosition!, mapController.camera.maxZoom!);
   }
 

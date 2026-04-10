@@ -1,4 +1,4 @@
-import 'dart:math';
+﻿import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -13,6 +13,7 @@ import 'package:moodiary/l10n/l10n.dart';
 import 'package:moodiary/persistence/pref.dart';
 
 import 'diary_details_logic.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class DiaryDetailsPage extends StatelessWidget {
   DiaryDetailsPage({super.key});
@@ -124,7 +125,7 @@ class DiaryDetailsPage extends StatelessWidget {
       builder: (_) {
         final customColorScheme =
             (state.imageColor != null &&
-                    PrefUtil.getValue<bool>('dynamicColor') == true)
+                    PrefUtil.getValue<bool>(PrefKeys.dynamicColor) == true)
                 ? ColorScheme.fromSeed(
                   seedColor: Color(state.imageColor!),
                   brightness: context.theme.colorScheme.brightness,

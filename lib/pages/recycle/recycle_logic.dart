@@ -1,3 +1,4 @@
+﻿import 'package:moodiary/l10n/l10n.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/common/models/isar/diary.dart';
 import 'package:moodiary/common/values/diary_domain.dart';
@@ -50,7 +51,7 @@ class RecycleLogic extends GetxController {
         ...audioDeleteTasks,
         ...videoDeleteTasks,
       ]);
-      toast.success(message: '删除成功');
+      toast.success(message: Get.context!.l10n.categoryDeleteSuccess);
       // 重新获取日记列表
       await getDiaryList();
     }

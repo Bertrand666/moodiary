@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 
 import 'package:get/get.dart';
 import 'package:intl/find_locale.dart';
@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:moodiary/common/values/language.dart';
 import 'package:moodiary/pages/home/setting/setting_logic.dart';
 import 'package:moodiary/persistence/pref.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class LanguageDialogLogic extends GetxController {
   late final SettingLogic settingLogic = Bind.find<SettingLogic>();
@@ -27,6 +28,6 @@ class LanguageDialogLogic extends GetxController {
     Intl.defaultLocale = language.languageCode;
     await Get.updateLocale(Locale(language.languageCode));
     settingLogic.state.language.value = originLanguage;
-    await PrefUtil.setValue<String>('language', originLanguage.languageCode);
+    await PrefUtil.setValue<String>(PrefKeys.language, originLanguage.languageCode);
   }
 }

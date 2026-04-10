@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/common/models/isar/category.dart';
 import 'package:moodiary/common/values/diary_domain.dart';
@@ -6,6 +6,7 @@ import 'package:moodiary/common/values/view_mode.dart';
 import 'package:moodiary/components/scroll/fix_scroll.dart';
 import 'package:moodiary/persistence/isar.dart';
 import 'package:moodiary/persistence/pref.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class DiaryState {
   final DiaryDomain domain;
@@ -30,7 +31,7 @@ class DiaryState {
 
   //视图模式状态
   late Rx<ViewModeType> viewModeType = ViewModeType.getType(
-    PrefUtil.getValue<int>('homeViewMode')!,
+    PrefUtil.getValue<int>(PrefKeys.homeViewMode)!,
   ).obs;
 
   //当前tab bar位置
@@ -40,7 +41,7 @@ class DiaryState {
   RxString hitokoto = '...'.obs;
 
   DiaryState({required this.domain}) {
-    customTitleName = PrefUtil.getValue<String>('customTitleName')!.obs;
+    customTitleName = PrefUtil.getValue<String>(PrefKeys.customTitleName)!.obs;
 
     nestedScrollKey = GlobalKey<NestedScrollViewState>();
 

@@ -1,9 +1,11 @@
+import 'package:moodiary/l10n/l10n.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' as flutter;
+import 'package:uuid/uuid.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/common/models/isar/category.dart';
 import 'package:moodiary/common/models/isar/diary.dart';
@@ -15,14 +17,16 @@ import 'package:moodiary/utils/aes_util.dart';
 import 'package:moodiary/utils/file_util.dart';
 import 'package:moodiary/utils/diary_logic_util.dart';
 import 'package:moodiary/utils/log_util.dart';
+import 'package:moodiary/utils/notice_util.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class WebDavUtil {
   RxSet<String> syncingDiaries = <String>{}.obs;
 
   webdav.Client? _client;
 
-  bool get hasOption => PrefUtil.getValue<bool>('hasWebDavOption') ?? false;
+  bool get hasOption => PrefUtil.getValue<bool>(PrefKeys.hasWebDavOption) ?? false;
 
   Future<List<String>> loadCredentials() async {
     final url = await SecureStorageUtil.getValue('webDavUrl') ?? '';
@@ -39,13 +43,13 @@ class WebDavUtil {
 
   Future<void> initWebDav() async {
     // 将旧版本 SharedPreferences 中的明文凭据自动迁移到 SecureStorage
-    final oldOptions = PrefUtil.getValue<List<String>>('webDavOption');
+    final oldOptions = PrefUtil.getValue<List<String>>(PrefKeys.webDavOption);
     if (oldOptions != null && oldOptions.isNotEmpty) {
       await SecureStorageUtil.setValue('webDavUrl', oldOptions[0]);
       await SecureStorageUtil.setValue('webDavUser', oldOptions[1]);
       await SecureStorageUtil.setValue('webDavPassword', oldOptions[2]);
-      await PrefUtil.setValue<bool>('hasWebDavOption', true);
-      await PrefUtil.setValue<List<String>>('webDavOption', []);
+      await PrefUtil.setValue<bool>(PrefKeys.hasWebDavOption, true);
+      await PrefUtil.setValue<List<String>>(PrefKeys.webDavOption, []);
     }
 
     if (!hasOption) {
@@ -124,7 +128,7 @@ class WebDavUtil {
     await SecureStorageUtil.setValue('webDavUrl', baseUrl);
     await SecureStorageUtil.setValue('webDavUser', username);
     await SecureStorageUtil.setValue('webDavPassword', password);
-    await PrefUtil.setValue<bool>('hasWebDavOption', true);
+    await PrefUtil.setValue<bool>(PrefKeys.hasWebDavOption, true);
     await initWebDav();
   }
 
@@ -133,7 +137,7 @@ class WebDavUtil {
     await SecureStorageUtil.remove('webDavUrl');
     await SecureStorageUtil.remove('webDavUser');
     await SecureStorageUtil.remove('webDavPassword');
-    await PrefUtil.setValue<bool>('hasWebDavOption', false);
+    await PrefUtil.setValue<bool>(PrefKeys.hasWebDavOption, false);
   }
 
   Future<Map<String, String>> fetchServerSyncData() async {
@@ -155,6 +159,24 @@ class WebDavUtil {
     }
   }
 
+  Future<Map<String, String>> fetchLocalSyncState() async {
+    final file = File(FileUtil.getLocalSyncStateFilePath());
+    if (await file.exists()) {
+      try {
+        final content = await file.readAsString();
+        return Map<String, String>.from(jsonDecode(content));
+      } catch (e) {
+        return {};
+      }
+    }
+    return {};
+  }
+
+  Future<void> updateLocalSyncState(Map<String, String> state) async {
+    final file = File(FileUtil.getLocalSyncStateFilePath());
+    await file.writeAsString(jsonEncode(state));
+  }
+
   //删除某一篇日记，将webdav中sync.json的对应日记id的value设置为delete
   Future<void> deleteSingleDiary(Diary diary) async {
     final serverSyncData = await fetchServerSyncData();
@@ -163,6 +185,11 @@ class WebDavUtil {
     }
     serverSyncData[diary.id] = 'delete';
     await updateServerSyncData(serverSyncData);
+
+    // 更新本地同步状态
+    final localSyncData = await fetchLocalSyncState();
+    localSyncData[diary.id] = 'delete';
+    await updateLocalSyncState(localSyncData);
     // 删除日记json
     await _client!.remove('${WebDavOptions.diaryPath}/${diary.id}.json');
     await _client!.remove('${WebDavOptions.diaryPath}/${diary.id}.bin');
@@ -225,89 +252,148 @@ class WebDavUtil {
     flutter.VoidCallback? onComplete,
   }) async {
     final serverSyncData = await fetchServerSyncData();
-    final Map<String, String> updatedSyncData = {...serverSyncData};
+    final Map<String, String> updatedServerSyncData = {...serverSyncData};
+    
+    final localSyncData = await fetchLocalSyncState();
+    final Map<String, String> updatedLocalSyncData = {...localSyncData};
+    final bool isFirstSync = localSyncData.isEmpty;
 
-    // 本地日记的 ID -> 修改时间映射
-    final Map<String, String> localDiaryMap = {
-      for (final diary in localDiaries)
-        diary.id: diary.lastModified.toIso8601String(),
+    // 本地日记的 ID -> Diary 映射
+    final Map<String, Diary> localDiaryMap = {
+      for (final diary in localDiaries) diary.id: diary,
     };
+    
+    // 取出所有涉及到的 ID 并集
+    final Set<String> allIds = {}
+      ..addAll(serverSyncData.keys)
+      ..addAll(localDiaryMap.keys);
 
-    for (final entry in serverSyncData.entries) {
-      final diaryId = entry.key;
-      final serverLastModified = entry.value;
+    for (final diaryId in allIds) {
+      if (syncingDiaries.contains(diaryId)) continue;
+      
+      final serverTimestamp = serverSyncData[diaryId];
+      final localDiary = localDiaryMap[diaryId];
+      final localTimestamp = localDiary?.lastModified.toIso8601String();
+      final lastSyncTimestamp = localSyncData[diaryId];
 
-      if (syncingDiaries.contains(diaryId)) {
-        continue; // 正在同步中，跳过
-      }
+      syncingDiaries.add(diaryId);
 
-      final localLastModified = localDiaryMap[diaryId];
-      //如果本地还有日记，但服务器中的日记已经被删除
-      if (serverLastModified == 'delete') {
-        if (localLastModified != null) {
-          syncingDiaries.add(diaryId);
-          await _deleteDiary(
-            localDiaries.firstWhere((element) => element.id == diaryId),
-          );
+      // 情境 A：只有云端存在这个 ID，且状态是 delete
+      if (serverTimestamp == 'delete') {
+        if (localDiary != null) {
+          // 本地存在，说明云端删除了，本地也应删除
+          await _deleteDiary(localDiary);
           await DiaryLogicUtil.refreshAllDomains();
-          syncingDiaries.remove(diaryId);
         }
+        updatedLocalSyncData[diaryId] = 'delete';
+        syncingDiaries.remove(diaryId);
+        continue;
+      }
+      
+      // 没有任何修改的情况（都和上一次同步一样）
+      if (!isFirstSync && serverTimestamp == lastSyncTimestamp && localTimestamp == lastSyncTimestamp) {
+        syncingDiaries.remove(diaryId);
         continue;
       }
 
-      //本地不存在该日记，下载
-      if (localLastModified == null) {
-        syncingDiaries.add(diaryId);
+      // 情境 B：本地不存在（被删或尚未下载），但服务器存在且已被他人修改或新增
+      if (localTimestamp == null && serverTimestamp != null) {
+        // 如果服务器有这篇新日记，下载它
         try {
-          final updatedDiary = await _downloadDiary(diaryId); // 下载日记的实现
-          await IsarUtil.insertADiary(updatedDiary); // 保存到本地的实现
+          final updatedDiary = await _downloadDiary(diaryId);
+          await IsarUtil.insertADiary(updatedDiary);
+          updatedLocalSyncData[diaryId] = serverTimestamp;
         } catch (e) {
-          updatedSyncData.remove(diaryId);
+          updatedServerSyncData.remove(diaryId);
         }
         onDownload?.call();
-
         syncingDiaries.remove(diaryId);
+        continue;
       }
-      // 本地存在该日记，但服务器版本较新，更新本地
-      if (localLastModified != null &&
-          serverLastModified.compareTo(localLastModified) > 0) {
-        syncingDiaries.add(diaryId);
-        final oldDiary = localDiaries.firstWhere(
-          (element) => element.id == diaryId,
-        );
+
+      // 兼容老版本的首次比对：如果没有 local_sync_state，回退到普通时间戳比较
+      if (isFirstSync) {
+        if (serverTimestamp != null && localTimestamp != null && serverTimestamp.compareTo(localTimestamp) > 0) {
+          // 服务器较新，更新本地
+          try {
+            final newDiary = await _downloadDiary(diaryId);
+            await IsarUtil.updateADiary(oldDiary: localDiary, newDiary: newDiary);
+            updatedLocalSyncData[diaryId] = serverTimestamp;
+          } catch (e) {
+            updatedServerSyncData.remove(diaryId);
+          }
+          onDownload?.call();
+        } else if (serverTimestamp == null || (localTimestamp != null && serverTimestamp.compareTo(localTimestamp) < 0)) {
+          // 本地较新，更新服务器
+          await _uploadDiary(localDiary!);
+          updatedServerSyncData[diaryId] = localTimestamp!;
+          updatedLocalSyncData[diaryId] = localTimestamp!;
+          onUpload?.call();
+        } else {
+          // 完全一致
+          updatedLocalSyncData[diaryId] = localTimestamp!;
+        }
+        syncingDiaries.remove(diaryId);
+        continue;
+      }
+
+      // 增量防冲突检测：
+      // 情境 1：仅服务器更新
+      if (serverTimestamp != null && serverTimestamp != lastSyncTimestamp && localTimestamp == lastSyncTimestamp) {
         try {
           final newDiary = await _downloadDiary(diaryId);
-          await IsarUtil.updateADiary(oldDiary: oldDiary, newDiary: newDiary);
+          await IsarUtil.updateADiary(oldDiary: localDiary, newDiary: newDiary);
+          updatedLocalSyncData[diaryId] = serverTimestamp;
         } catch (e) {
-          // 下载失败，移除sync.json中的记录
-          updatedSyncData.remove(diaryId);
+          updatedServerSyncData.remove(diaryId);
         }
         onDownload?.call();
-        syncingDiaries.remove(diaryId);
       }
-    }
-
-    for (final diary in localDiaries) {
-      if (syncingDiaries.contains(diary.id)) {
-        continue; // 正在同步中，跳过
-      }
-
-      final serverLastModified = serverSyncData[diary.id];
-      final localLastModified = diary.lastModified.toIso8601String();
-
-      if (serverLastModified == null ||
-          serverLastModified.compareTo(localLastModified) < 0) {
-        // 服务器不存在该日记，或服务器版本较旧
-        syncingDiaries.add(diary.id);
-        await _uploadDiary(diary); // 上传日记的实现
+      // 情境 2：仅本地更新 (或服务器被意外清除)
+      else if (localTimestamp != null && localTimestamp != lastSyncTimestamp && (serverTimestamp == lastSyncTimestamp || serverTimestamp == null)) {
+        await _uploadDiary(localDiary!);
+        updatedServerSyncData[diaryId] = localTimestamp;
+        updatedLocalSyncData[diaryId] = localTimestamp;
         onUpload?.call();
-        updatedSyncData[diary.id] = localLastModified;
-        syncingDiaries.remove(diary.id);
       }
+      // 情境 3：冲突发生！(本地更新了，服务器也独立更新了)
+      else if (serverTimestamp != null && localTimestamp != null && serverTimestamp != lastSyncTimestamp && localTimestamp != lastSyncTimestamp) {
+        // ---- 发生冲突，执行分叉 Fork ----
+        // 1. 本地记录作为副本处理
+        final clonedDiary = localDiary!.clone();
+        final newId = const Uuid().v7();
+        clonedDiary.id = newId;
+        // 注意：因为 Isar 默认根据 id 去重和关联，如果不修改本地存储名称可能存在文件共用问题，
+        // 由于克隆方法暂时共享附件名称，我们重点在标题增加提示：
+        clonedDiary.title = '${clonedDiary.title} (冲突副本-${localDiary.id.substring(0, 4)})';
+        await IsarUtil.insertADiary(clonedDiary);
+        
+        // 分叉出来的副本立刻上传
+        await _uploadDiary(clonedDiary);
+        updatedServerSyncData[newId] = clonedDiary.lastModified.toIso8601String();
+        updatedLocalSyncData[newId] = clonedDiary.lastModified.toIso8601String();
+        onUpload?.call();
+        
+        // 2. 原始 ID 日记从云端安全下载
+        try {
+          final newDiary = await _downloadDiary(diaryId);
+          await IsarUtil.updateADiary(oldDiary: localDiary, newDiary: newDiary);
+          updatedLocalSyncData[diaryId] = serverTimestamp;
+        } catch (e) {
+          updatedServerSyncData.remove(diaryId);
+        }
+        onDownload?.call();
+      }
+
+      syncingDiaries.remove(diaryId);
     }
 
-    // 更新服务器的同步 JSON 文件
-    await updateServerSyncData(updatedSyncData);
+    // 更新双端同步文件
+    await updateServerSyncData(updatedServerSyncData);
+    await updateLocalSyncState(updatedLocalSyncData);
+    
+    // 刷新界面
+    await DiaryLogicUtil.refreshAllDomains();
     onComplete?.call();
   }
 
@@ -327,12 +413,19 @@ class WebDavUtil {
 
       // 更新服务器同步数据
       final serverSyncData = await fetchServerSyncData();
-      serverSyncData[diary.id] = diary.lastModified.toIso8601String();
+      final lastModifiedStr = diary.lastModified.toIso8601String();
+      serverSyncData[diary.id] = lastModifiedStr;
       await updateServerSyncData(serverSyncData);
+
+      // 更新本地同步状态
+      final localSyncData = await fetchLocalSyncState();
+      localSyncData[diary.id] = lastModifiedStr;
+      await updateLocalSyncState(localSyncData);
 
       onUpload?.call();
     } catch (e) {
       logger.d('Failed to upload diary: $e');
+      toast.error(message: Get.context!.l10n.webdavUploadFail);
     } finally {
       syncingDiaries.remove(diary.id);
       onComplete?.call(); // 调用完成回调
@@ -392,6 +485,7 @@ class WebDavUtil {
       onUpload?.call();
     } catch (e) {
       logger.d('Failed to upload diary: $e');
+      toast.error(message: Get.context!.l10n.webdavUpdateFail);
     } finally {
       syncingDiaries.remove(newDiary.id);
       onComplete?.call(); // 调用完成回调
@@ -399,7 +493,7 @@ class WebDavUtil {
   }
 
   Future<bool> _checkShouldEncrypt() async {
-    return PrefUtil.getValue<bool>('syncEncryption') == true &&
+    return PrefUtil.getValue<bool>(PrefKeys.syncEncryption) == true &&
         (await SecureStorageUtil.getValue('userKey')) != null;
   }
 

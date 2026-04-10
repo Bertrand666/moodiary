@@ -1,3 +1,4 @@
+﻿import 'package:moodiary/l10n/l10n.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -59,7 +60,7 @@ class VideoLogic extends GetxController {
     chewieController = ChewieController(
       videoPlayerController: _videoPlayerController,
       allowPlaybackSpeedChanging: false,
-      optionsTranslation: OptionsTranslation(playbackSpeedButtonText: '播放速度'),
+      optionsTranslation: OptionsTranslation(playbackSpeedButtonText: Get.context!.l10n.videoPlaySpeed),
       optionsBuilder: (context, options) async {
         await showFloatingModalBottomSheet(
           context: context,

@@ -1,6 +1,7 @@
-import 'package:get/get.dart';
+﻿import 'package:get/get.dart';
 import 'package:moodiary/common/models/isar/diary.dart';
 import 'package:moodiary/persistence/pref.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class DiaryDetailsState {
   Diary diary = Get.arguments[0];
@@ -13,7 +14,7 @@ class DiaryDetailsState {
 
   RxBool isScrolling = false.obs;
 
-  bool get diaryHeader => PrefUtil.getValue<bool>('diaryHeader')!;
+  bool get diaryHeader => PrefUtil.getValue<bool>(PrefKeys.diaryHeader)!;
 
   DiaryDetailsState();
 }

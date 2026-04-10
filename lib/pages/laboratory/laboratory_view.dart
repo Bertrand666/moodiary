@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/components/base/tile/qr_tile.dart';
@@ -7,6 +7,7 @@ import 'package:moodiary/persistence/pref.dart';
 import 'package:moodiary/utils/notice_util.dart';
 
 import 'laboratory_logic.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class LaboratoryPage extends StatelessWidget {
   const LaboratoryPage({super.key});
@@ -24,8 +25,8 @@ class LaboratoryPage extends StatelessWidget {
             children: [
               QrInputTile(
                 title: '${context.l10n.labTencentCloud} ID',
-                value: PrefUtil.getValue<String>('tencentId') ?? '',
-                prefix: 'tencentId',
+                value: PrefUtil.getValue<String>(PrefKeys.tencentId) ?? '',
+                prefix: PrefKeys.tencentId,
                 onValue: (value) async {
                   final res = await logic.setTencentID(id: value);
                   if (res) {
@@ -38,8 +39,8 @@ class LaboratoryPage extends StatelessWidget {
               const Gap(12),
               QrInputTile(
                 title: '${context.l10n.labTencentCloud} Key',
-                value: PrefUtil.getValue<String>('tencentKey') ?? '',
-                prefix: 'tencentKey',
+                value: PrefUtil.getValue<String>(PrefKeys.tencentKey) ?? '',
+                prefix: PrefKeys.tencentKey,
                 onValue: (value) async {
                   final res = await logic.setTencentKey(key: value);
                   if (res) {
@@ -52,8 +53,8 @@ class LaboratoryPage extends StatelessWidget {
               const Gap(12),
               QrInputTile(
                 title: '${context.l10n.labQweather} Key',
-                value: PrefUtil.getValue<String>('qweatherKey') ?? '',
-                prefix: 'qweatherKey',
+                value: PrefUtil.getValue<String>(PrefKeys.qweatherKey) ?? '',
+                prefix: PrefKeys.qweatherKey,
                 onValue: (value) async {
                   final res = await logic.setQweatherKey(key: value);
                   if (res) {
@@ -66,8 +67,8 @@ class LaboratoryPage extends StatelessWidget {
               const Gap(12),
               QrInputTile(
                 title: '${context.l10n.labQweather} API Host',
-                value: PrefUtil.getValue<String>('qweatherApiHost') ?? '',
-                prefix: 'qweatherApiHost',
+                value: PrefUtil.getValue<String>(PrefKeys.qweatherApiHost) ?? '',
+                prefix: PrefKeys.qweatherApiHost,
                 onValue: (value) async {
                   final res = await logic.setQweatherApiHost(host: value);
                   if (res) {
@@ -81,8 +82,8 @@ class LaboratoryPage extends StatelessWidget {
               const Gap(12),
               QrInputTile(
                 title: '${context.l10n.labTianditu} Key',
-                value: PrefUtil.getValue<String>('tiandituKey') ?? '',
-                prefix: 'tiandituKey',
+                value: PrefUtil.getValue<String>(PrefKeys.tiandituKey) ?? '',
+                prefix: PrefKeys.tiandituKey,
                 onValue: (value) async {
                   final res = await logic.setTiandituKey(key: value);
                   if (res) {

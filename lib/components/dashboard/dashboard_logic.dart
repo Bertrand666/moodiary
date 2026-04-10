@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
@@ -6,6 +6,7 @@ import 'package:moodiary/persistence/isar.dart';
 import 'package:moodiary/persistence/pref.dart';
 import 'package:moodiary/router/app_routes.dart';
 import 'package:moodiary/utils/array_util.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class DashboardLogic extends GetxController {
   //日记数量
@@ -86,7 +87,7 @@ class DashboardLogic extends GetxController {
 
   void getUseTime() {
     final DateTime firstStart = DateTime.fromMillisecondsSinceEpoch(
-      PrefUtil.getValue<int>('startTime')!,
+      PrefUtil.getValue<int>(PrefKeys.startTime)!,
     );
     final Duration duration = DateTime.now().difference(firstStart);
     useTime.value = (duration.inDays + 1).toString();

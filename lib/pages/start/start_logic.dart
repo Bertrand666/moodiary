@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
@@ -9,6 +9,7 @@ import 'package:moodiary/router/app_routes.dart';
 import 'package:moodiary/utils/channel.dart';
 import 'package:moodiary/utils/package_util.dart';
 import 'package:uuid/uuid.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class StartLogic extends GetxController {
   void toPrivacy() {
@@ -20,7 +21,7 @@ class StartLogic extends GetxController {
   }
 
   Future<void> toHome() async {
-    await PrefUtil.setValue<bool>('firstStart', false);
+    await PrefUtil.setValue<bool>(PrefKeys.firstStart, false);
     if (Platform.isAndroid) {
       //await SupabaseUtil().initSupabase();
       //await Utils().updateUtil.initShiply();
@@ -49,12 +50,12 @@ class StartLogic extends GetxController {
     }
     if (oaid != null) {
       await PrefUtil.setValue<String>(
-        'uuid',
+        PrefKeys.uuid,
         md5.convert(utf8.encode(oaid)).toString(),
       );
     } else {
       await PrefUtil.setValue<String>(
-        'uuid',
+        PrefKeys.uuid,
         md5.convert(utf8.encode(const Uuid().v7())).toString(),
       );
     }

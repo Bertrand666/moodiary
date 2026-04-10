@@ -1,3 +1,4 @@
+﻿import 'package:moodiary/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/common/values/webdav.dart';
@@ -7,6 +8,7 @@ import 'package:moodiary/utils/notice_util.dart';
 import 'package:moodiary/utils/webdav_util.dart';
 
 import 'web_dav_state.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class WebDavLogic extends GetxController {
   final WebDavState state = WebDavState();
@@ -105,7 +107,7 @@ class WebDavLogic extends GetxController {
       passwordController.text = '';
       state.hasOption.value = false;
       webDav.removeWebDavOption();
-      toast.success(message: '删除成功');
+      toast.success(message: Get.context!.l10n.categoryDeleteSuccess);
     } else {
       // 超过3秒，重置点击时间并提示
       _firstClickTime = currentTime;
@@ -114,17 +116,17 @@ class WebDavLogic extends GetxController {
   }
 
   void setAutoSync(bool value) async {
-    await PrefUtil.setValue<bool>('autoSync', value);
+    await PrefUtil.setValue<bool>(PrefKeys.autoSync, value);
     state.autoSync.value = value;
   }
 
   void setAutoSyncAfterChange(bool value) async {
-    await PrefUtil.setValue<bool>('autoSyncAfterChange', value);
+    await PrefUtil.setValue<bool>(PrefKeys.autoSyncAfterChange, value);
     state.autoSyncAfterChange.value = value;
   }
 
   void setSyncEncryption(bool value) async {
-    await PrefUtil.setValue<bool>('syncEncryption', value);
+    await PrefUtil.setValue<bool>(PrefKeys.syncEncryption, value);
     state.syncEncryption.value = value;
   }
 }

@@ -1,15 +1,16 @@
-import 'dart:math';
+﻿import 'dart:math';
 
 import 'package:latlong2/latlong.dart';
 import 'package:moodiary/common/models/map.dart';
 import 'package:moodiary/persistence/pref.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class MapState {
   LatLng? currentLatLng;
 
   List<DiaryMapItem> diaryMapItemList = [];
 
-  String? tiandituKey = PrefUtil.getValue<String>('tiandituKey');
+  String? tiandituKey = PrefUtil.getValue<String>(PrefKeys.tiandituKey);
 
   String vecUrl =
       'http://t6.tianditu.gov.cn/vec_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk={key}';

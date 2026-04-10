@@ -1,7 +1,8 @@
-import 'package:collection/collection.dart';
+﻿import 'package:collection/collection.dart';
 import 'package:isar/isar.dart';
 import 'package:moodiary/common/values/diary_domain.dart';
 import 'package:uuid/uuid.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 part 'diary.g.dart';
 
@@ -183,7 +184,7 @@ class Diary {
       'lastModified': lastModified.toIso8601String(),
       'show': show,
       'mood': mood,
-      'weather': weather,
+      PrefKeys.weather: weather,
       'imageName': imageName,
       'audioName': audioName,
       'videoName': videoName,
@@ -209,7 +210,7 @@ class Diary {
       ..lastModified = DateTime.parse(json['lastModified'] as String)
       ..show = json['show'] as bool
       ..mood = (json['mood'] as num).toDouble()
-      ..weather = List<String>.from(json['weather'] as List)
+      ..weather = List<String>.from(json[PrefKeys.weather] as List)
       ..imageName = List<String>.from(json['imageName'] as List)
       ..audioName = List<String>.from(json['audioName'] as List)
       ..videoName = List<String>.from(json['videoName'] as List)

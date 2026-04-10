@@ -1,3 +1,4 @@
+﻿import 'package:moodiary/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/components/login_form/login_form_view.dart';
@@ -17,7 +18,7 @@ class LoginPage extends StatelessWidget {
       builder: (_) {
         return Scaffold(
           appBar: AppBar(
-            title: state.isLogin ? const Text('登录') : const Text('注册'),
+            title: state.isLogin ? Text(Get.context!.l10n.loginLabel) : Text(Get.context!.l10n.registerLabel),
           ),
           body: AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),

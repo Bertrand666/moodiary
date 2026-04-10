@@ -1,6 +1,7 @@
-import 'package:moodiary/common/models/isar/diary.dart';
+﻿import 'package:moodiary/common/models/isar/diary.dart';
 import 'package:moodiary/persistence/pref.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class SupabaseUtil {
   late final SupabaseClient _supabase = Supabase.instance.client;
@@ -16,7 +17,7 @@ class SupabaseUtil {
   factory SupabaseUtil() => _instance;
 
   Future<void> initSupabase() async {
-    if (PrefUtil.getValue<bool>('firstStart') == false) {
+    if (PrefUtil.getValue<bool>(PrefKeys.firstStart) == false) {
       await Supabase.initialize(url: '', anonKey: '');
     }
   }

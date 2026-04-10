@@ -1,9 +1,10 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'package:moodiary/persistence/isar.dart';
 import 'package:moodiary/persistence/pref.dart';
 import 'package:moodiary/utils/file_util.dart';
 import 'package:moodiary/utils/font_util.dart';
 import 'package:moodiary/utils/media_util.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class MergeUtil {
   static Future<void> merge({required String lastAppVersion}) async {
@@ -45,7 +46,7 @@ class MergeUtil {
     /// v2.7.3
     /// 修改自定义字体存储方式
     if (appVersionCode.compareTo('2.7.3') < 0) {
-      await PrefUtil.setValue('customFont', '');
+      await PrefUtil.setValue(PrefKeys.customFont, '');
       final allFont = await FontUtil.getAllFonts();
       await compute(IsarUtil.mergeToV2_7_3, {
         'database': FileUtil.getRealPath('database', ''),
@@ -54,9 +55,9 @@ class MergeUtil {
     }
 
     /// domain 字段持久化回填（一次性，与版本无关）
-    if (PrefUtil.getValue<bool>('domainFieldMigrated') != true) {
+    if (PrefUtil.getValue<bool>(PrefKeys.domainFieldMigrated) != true) {
       await IsarUtil.migrateDomainField();
-      await PrefUtil.setValue<bool>('domainFieldMigrated', true);
+      await PrefUtil.setValue<bool>(PrefKeys.domainFieldMigrated, true);
     }
   }
 }

@@ -12,11 +12,12 @@ import 'package:moodiary/persistence/pref.dart';
 import 'package:moodiary/src/rust/api/zip.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class FileUtil {
-  static final String _filePath = PrefUtil.getValue<String>('supportPath')!;
+  static final String _filePath = PrefUtil.getValue<String>(PrefKeys.supportPath)!;
 
-  static final String _cachePath = PrefUtil.getValue<String>('cachePath')!;
+  static final String _cachePath = PrefUtil.getValue<String>(PrefKeys.cachePath)!;
 
   // 删除文件
   static Future<bool> deleteFile(String path) async {
@@ -33,6 +34,10 @@ class FileUtil {
   static String getErrorLogFilePath() {
     //打开文件
     return join(_filePath, 'error.log');
+  }
+
+  static String getLocalSyncStateFilePath() {
+    return join(_filePath, 'local_sync_state.json');
   }
 
   //删除指定文件夹
@@ -194,6 +199,8 @@ class FileUtil {
         file.writeContent(outputStream);
       }
     }
+    //删除本地同步状态文件，以重新全量对比
+    await deleteFile(getLocalSyncStateFilePath());
     //复制数据库
     await IsarUtil.dataMigration(_cachePath);
   }

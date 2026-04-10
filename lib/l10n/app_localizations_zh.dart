@@ -914,4 +914,151 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get labTencentCloud => '腾讯云';
+
+  @override
+  String get labLogOpenCacheFolder => '打开日志缓存文件夹';
+
+  @override
+  String get noticeSyncingDoNotLeave => '同步中，请不要离开页面';
+
+  @override
+  String get noticeCreatingBackup => '正在创建备份';
+
+  @override
+  String get permNoMedia => '未授予相册/相机权限，去手动开启';
+
+  @override
+  String get categoryNameCannotBeEmpty => '名称不能为空';
+
+  @override
+  String get fontDeleteSuccess => '删除成功';
+
+  @override
+  String get categoryNameExist => '已存在，自定义后缀';
+
+  @override
+  String get noticeBackupApplySuccess => '成功应用备份';
+
+  @override
+  String get userLogout => '退出登录';
+
+  @override
+  String get noticeBackupExportComplete => '备份导出完成，请保管好文件';
+
+  @override
+  String get noticeSendMsg => '发送消息';
+
+  @override
+  String get webdavUploadFail => '同步上传失败，请检查网络连接';
+
+  @override
+  String get loginLabel => '登录';
+
+  @override
+  String get fontParseSuccess => '解析成功';
+
+  @override
+  String get labTestImageLink => '测试图片直链';
+
+  @override
+  String get updateIsLatest => '已经是最新版本';
+
+  @override
+  String get videoPlaySpeed => '播放速度';
+
+  @override
+  String get mapLocateFinding => '定位中...';
+
+  @override
+  String get labTestNotifyPass => '通知测试通过';
+
+  @override
+  String get emptyLabel => '无';
+
+  @override
+  String get labClearLogTitle => '一键清空日志';
+
+  @override
+  String get userAgreement => '用户协议';
+
+  @override
+  String get authSecurityVerify => '安全验证';
+
+  @override
+  String get shareSuccess => '已保存到相册';
+
+  @override
+  String get permNoLocation => '未授予位置权限';
+
+  @override
+  String get fontFetchFail => '字体获取失败';
+
+  @override
+  String get shareFail => '保存失败';
+
+  @override
+  String get labLogFileTitle => '日志文件';
+
+  @override
+  String get labLogClearSuccess => '日志清除成功';
+
+  @override
+  String get noticeSelectModel => '选择模型：';
+
+  @override
+  String get fontApplySuccess => '应用成功';
+
+  @override
+  String get labLogRequestPass => '请求成功';
+
+  @override
+  String get labTestNotifyFail => '通知测试失败';
+
+  @override
+  String get categoryDeleteFailNotEmpty => '删除失败，该分类下还有日记';
+
+  @override
+  String get labLogRequestFail => '请求失败';
+
+  @override
+  String get noticeBackupExportFail => '备份导出失败，权限被拒绝';
+
+  @override
+  String get privacyPolicy => '隐私政策';
+
+  @override
+  String get labLogSystemStart => '日志系统启动';
+
+  @override
+  String get webdavUpdateFail => '同步更新失败，请检查网络连接';
+
+  @override
+  String get categoryDeleteSuccess => '删除成功';
+
+  @override
+  String get mapLocateSuccess => '定位成功';
+
+  @override
+  String get noticeBackupCancel => '已取消备份选择';
+
+  @override
+  String get noticeUserInfo => '用户信息';
+
+  @override
+  String get fontDisplayDifferentWorld => '看到不同的世界';
+
+  @override
+  String get registerLabel => '注册';
+
+  @override
+  String get labTestNotifyTitle => '测试通知';
+
+  @override
+  String get fontDisplayNewLayout => '全新的排版';
+
+  @override
+  String get recycleRecoverSuccess => '已恢复到日记列表';
+
+  @override
+  String get fontAddSuccess => '添加成功';
 }

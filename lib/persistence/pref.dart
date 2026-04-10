@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'package:moodiary/common/values/colors.dart';
 import 'package:moodiary/common/values/view_mode.dart';
 import 'package:moodiary/merge/merge.dart';
@@ -7,96 +7,97 @@ import 'package:moodiary/utils/file_util.dart';
 import 'package:moodiary/utils/package_util.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class PrefUtil {
   static late final SharedPreferencesWithCache _prefs;
 
   static const allowList = {
     //应用版本
-    'appVersion',
+    PrefKeys.appVersion,
     //首次启动标识
-    'firstStart',
+    PrefKeys.firstStart,
     //自动同步
-    'autoSync',
+    PrefKeys.autoSync,
     //主题颜色
-    'color',
+    PrefKeys.color,
     //主题颜色类型
-    'colorType',
+    PrefKeys.colorType,
     //主题模式
-    'themeMode',
+    PrefKeys.themeMode,
     //动态配色
-    'dynamicColor',
+    PrefKeys.dynamicColor,
     //图片质量
-    'quality',
+    PrefKeys.quality,
     //本地化
-    'local',
+    PrefKeys.local,
     //应用锁
-    'lock',
+    PrefKeys.lock,
     //uuid
-    'uuid',
+    PrefKeys.uuid,
     //字体缩放
-    'fontScale',
+    PrefKeys.fontScale,
     //立即锁定
-    'lockNow',
+    PrefKeys.lockNow,
     //字体样式
-    'fontTheme',
+    PrefKeys.fontTheme,
     //和风key
-    'qweatherKey',
+    PrefKeys.qweatherKey,
     // 和风apihost,
-    'qweatherApiHost',
-    'tencentId',
-    'tencentKey',
-    'tiandituKey',
+    PrefKeys.qweatherApiHost,
+    PrefKeys.tencentId,
+    PrefKeys.tencentKey,
+    PrefKeys.tiandituKey,
     //侧边栏天气
-    'getWeather',
+    PrefKeys.getWeather,
     //天气缓存
-    'weather',
+    PrefKeys.weather,
     //一言缓存
-    'hitokoto',
+    PrefKeys.hitokoto,
     //图片缓存
-    'bingImage',
+    PrefKeys.bingImage,
     //第一次打开的时间
-    'startTime',
+    PrefKeys.startTime,
     //应用文档路径
-    'supportPath',
+    PrefKeys.supportPath,
     //缓存路径
-    'cachePath',
+    PrefKeys.cachePath,
     //密码
-    'password',
+    PrefKeys.password,
     //生物识别支持
-    'supportBiometrics',
+    PrefKeys.supportBiometrics,
     //自定义首页名称
-    'customTitleName',
+    PrefKeys.customTitleName,
     //首页视图模式
-    'homeViewMode',
+    PrefKeys.homeViewMode,
     //自动获取天气
-    'autoWeather',
+    PrefKeys.autoWeather,
     //webdav配置（凭据已迁移至 SecureStorage）
-    'webDavOption',
+    PrefKeys.webDavOption,
     // webdav是否已配置标志（凭据不存 SharedPreferences）
-    'hasWebDavOption',
+    PrefKeys.hasWebDavOption,
     // domain 字段持久化迁移标志
-    'domainFieldMigrated',
+    PrefKeys.domainFieldMigrated,
     // 日记展示头图
-    'diaryHeader',
+    PrefKeys.diaryHeader,
     // 首行缩进
-    'firstLineIndent',
+    PrefKeys.firstLineIndent,
     // 自动设置分类
-    'autoCategory',
+    PrefKeys.autoCategory,
     // 展示写作时长
-    'showWritingTime',
+    PrefKeys.showWritingTime,
     // 展示字数统计
-    'showWordCount',
+    PrefKeys.showWordCount,
     // 自定义字体
-    'customFont',
+    PrefKeys.customFont,
     // 后台隐私保护
-    'backendPrivacy',
+    PrefKeys.backendPrivacy,
     // 日记状态改变时同步
-    'autoSyncAfterChange',
+    PrefKeys.autoSyncAfterChange,
     // 语言
-    'language',
+    PrefKeys.language,
     // webdav加密
-    'syncEncryption',
+    PrefKeys.syncEncryption,
   };
 
   static Future<void> initPref() async {
@@ -106,20 +107,20 @@ class PrefUtil {
       ),
     );
     // 首次启动
-    final firstStart = _prefs.getBool('firstStart') ?? true;
-    await _prefs.setBool('firstStart', firstStart);
+    final firstStart = _prefs.getBool(PrefKeys.firstStart) ?? true;
+    await _prefs.setBool(PrefKeys.firstStart, firstStart);
 
     // 获取当前应用版本
     final packageInfo = await PackageUtil.getPackageInfo();
     final currentVersion = '${packageInfo.version}+${packageInfo.buildNumber}';
-    final appVersion = _prefs.getString('appVersion');
+    final appVersion = _prefs.getString(PrefKeys.appVersion);
     if (appVersion != null) MergeUtil.merge(lastAppVersion: appVersion);
     // 如果是首次启动或版本不一致
     if (kDebugMode ||
         firstStart ||
         appVersion == null ||
         appVersion != currentVersion) {
-      await _prefs.setString('appVersion', currentVersion);
+      await _prefs.setString(PrefKeys.appVersion, currentVersion);
       await setDefaultValues();
       //初始化所需目录
       await FileUtil.initCreateDir();
@@ -128,91 +129,91 @@ class PrefUtil {
 
   // 设置默认值的方法
   static Future<void> setDefaultValues() async {
-    await _prefs.setBool('autoSync', _prefs.getBool('autoSync') ?? false);
+    await _prefs.setBool(PrefKeys.autoSync, _prefs.getBool(PrefKeys.autoSync) ?? false);
 
     /// 支持相关，每次都重新获取
     await _prefs.setBool(
-      'supportBiometrics',
+      PrefKeys.supportBiometrics,
       await AuthUtil.canCheckBiometrics(),
     );
 
     await _prefs.setInt(
-      'colorType',
-      _prefs.getInt('colorType') ?? AppColorType.common.value,
+      PrefKeys.colorType,
+      _prefs.getInt(PrefKeys.colorType) ?? AppColorType.common.value,
     );
-    await _prefs.setInt('themeMode', _prefs.getInt('themeMode') ?? 0);
+    await _prefs.setInt(PrefKeys.themeMode, _prefs.getInt(PrefKeys.themeMode) ?? 0);
     await _prefs.setBool(
-      'dynamicColor',
-      _prefs.getBool('dynamicColor') ?? true,
+      PrefKeys.dynamicColor,
+      _prefs.getBool(PrefKeys.dynamicColor) ?? true,
     );
-    await _prefs.setInt('quality', _prefs.getInt('quality') ?? 2);
-    await _prefs.setBool('local', _prefs.getBool('local') ?? false);
-    await _prefs.setBool('lock', _prefs.getBool('lock') ?? false);
-    await _prefs.setDouble('fontScale', _prefs.getDouble('fontScale') ?? 1.0);
-    await _prefs.setBool('lockNow', _prefs.getBool('lockNow') ?? false);
-    await _prefs.setInt('fontTheme', _prefs.getInt('fontTheme') ?? 0);
+    await _prefs.setInt(PrefKeys.quality, _prefs.getInt(PrefKeys.quality) ?? 2);
+    await _prefs.setBool(PrefKeys.local, _prefs.getBool(PrefKeys.local) ?? false);
+    await _prefs.setBool(PrefKeys.lock, _prefs.getBool(PrefKeys.lock) ?? false);
+    await _prefs.setDouble(PrefKeys.fontScale, _prefs.getDouble(PrefKeys.fontScale) ?? 1.0);
+    await _prefs.setBool(PrefKeys.lockNow, _prefs.getBool(PrefKeys.lockNow) ?? false);
+    await _prefs.setInt(PrefKeys.fontTheme, _prefs.getInt(PrefKeys.fontTheme) ?? 0);
 
     /// 支持相关，重新获取
     await _prefs.setString(
-      'supportPath',
+      PrefKeys.supportPath,
       (await getApplicationSupportDirectory()).path,
     );
     await _prefs.setString(
-      'cachePath',
+      PrefKeys.cachePath,
       (await getApplicationCacheDirectory()).path,
     );
 
-    await _prefs.setBool('getWeather', _prefs.getBool('getWeather') ?? false);
+    await _prefs.setBool(PrefKeys.getWeather, _prefs.getBool(PrefKeys.getWeather) ?? false);
     await _prefs.setInt(
-      'startTime',
-      _prefs.getInt('startTime') ?? DateTime.now().millisecondsSinceEpoch,
+      PrefKeys.startTime,
+      _prefs.getInt(PrefKeys.startTime) ?? DateTime.now().millisecondsSinceEpoch,
     );
     await _prefs.setString(
-      'customTitleName',
-      _prefs.getString('customTitleName') ?? '',
+      PrefKeys.customTitleName,
+      _prefs.getString(PrefKeys.customTitleName) ?? '',
     );
     await _prefs.setInt(
-      'homeViewMode',
-      _prefs.getInt('homeViewMode') ?? ViewModeType.list.number,
+      PrefKeys.homeViewMode,
+      _prefs.getInt(PrefKeys.homeViewMode) ?? ViewModeType.list.number,
     );
-    await _prefs.setBool('autoWeather', _prefs.getBool('autoWeather') ?? false);
+    await _prefs.setBool(PrefKeys.autoWeather, _prefs.getBool(PrefKeys.autoWeather) ?? false);
     await _prefs.setBool(
-      'hasWebDavOption',
-      _prefs.getBool('hasWebDavOption') ?? false,
+      PrefKeys.hasWebDavOption,
+      _prefs.getBool(PrefKeys.hasWebDavOption) ?? false,
     );
-    await _prefs.setBool('diaryHeader', _prefs.getBool('diaryHeader') ?? true);
+    await _prefs.setBool(PrefKeys.diaryHeader, _prefs.getBool(PrefKeys.diaryHeader) ?? true);
     await _prefs.setBool(
-      'firstLineIndent',
-      _prefs.getBool('firstLineIndent') ?? false,
-    );
-    await _prefs.setBool(
-      'autoCategory',
-      _prefs.getBool('autoCategory') ?? false,
+      PrefKeys.firstLineIndent,
+      _prefs.getBool(PrefKeys.firstLineIndent) ?? false,
     );
     await _prefs.setBool(
-      'showWritingTime',
-      _prefs.getBool('showWritingTime') ?? true,
+      PrefKeys.autoCategory,
+      _prefs.getBool(PrefKeys.autoCategory) ?? false,
     );
     await _prefs.setBool(
-      'showWordCount',
-      _prefs.getBool('showWordCount') ?? true,
-    );
-    await _prefs.setString('customFont', _prefs.getString('customFont') ?? '');
-    await _prefs.setBool(
-      'backendPrivacy',
-      _prefs.getBool('backendPrivacy') ?? true,
+      PrefKeys.showWritingTime,
+      _prefs.getBool(PrefKeys.showWritingTime) ?? true,
     );
     await _prefs.setBool(
-      'autoSyncAfterChange',
-      _prefs.getBool('autoSyncAfterChange') ?? false,
+      PrefKeys.showWordCount,
+      _prefs.getBool(PrefKeys.showWordCount) ?? true,
+    );
+    await _prefs.setString(PrefKeys.customFont, _prefs.getString(PrefKeys.customFont) ?? '');
+    await _prefs.setBool(
+      PrefKeys.backendPrivacy,
+      _prefs.getBool(PrefKeys.backendPrivacy) ?? true,
+    );
+    await _prefs.setBool(
+      PrefKeys.autoSyncAfterChange,
+      _prefs.getBool(PrefKeys.autoSyncAfterChange) ?? false,
     );
     await _prefs.setString(
-      'language',
-      _prefs.getString('language') ?? 'system',
+      PrefKeys.language,
+      _prefs.getString(PrefKeys.language) ?? 'system',
     );
     await _prefs.setBool(
-      'syncEncryption',
-      _prefs.getBool('syncEncryption') ?? false,
+      PrefKeys.syncEncryption,
+      _prefs.getBool(PrefKeys.syncEncryption) ?? false,
     );
   }
 

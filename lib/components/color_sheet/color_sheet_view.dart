@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/common/values/border.dart';
@@ -10,6 +10,7 @@ import 'package:moodiary/utils/theme_util.dart';
 
 import 'color_sheet_logic.dart';
 import 'color_sheet_state.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class ColorSheetComponent extends StatelessWidget {
   const ColorSheetComponent({super.key});
@@ -44,7 +45,7 @@ class ColorSheetComponent extends StatelessWidget {
         style: textStyle,
       ),
       textDirection: TextDirection.ltr,
-      textScaler: TextScaler.linear(PrefUtil.getValue<double>('fontScale')!),
+      textScaler: TextScaler.linear(PrefUtil.getValue<double>(PrefKeys.fontScale)!),
     )..layout();
     final showMarquee = textPainter.width > constraints.maxWidth - 8.0;
     return Padding(

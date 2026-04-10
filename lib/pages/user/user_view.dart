@@ -1,3 +1,4 @@
+import 'package:moodiary/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -18,7 +19,7 @@ class UserPage extends StatelessWidget {
             onPressed: () {
               logic.signOut();
             },
-            child: const Text('退出登录'),
+            child: Text(Get.context!.l10n.userLogout),
           ),
         ],
       ),

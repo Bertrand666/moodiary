@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/pages/home/setting/setting_logic.dart';
 import 'package:moodiary/persistence/pref.dart';
 
 import 'theme_mode_dialog_state.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class ThemeModeDialogLogic extends GetxController {
   final ThemeModeDialogState state = ThemeModeDialogState();
@@ -11,7 +12,7 @@ class ThemeModeDialogLogic extends GetxController {
 
   //修改颜色模式
   Future<void> changeThemeMode(int value) async {
-    await PrefUtil.setValue<int>('themeMode', value);
+    await PrefUtil.setValue<int>(PrefKeys.themeMode, value);
     state.themeMode = value;
     settingLogic.state.themeMode = value;
     update();

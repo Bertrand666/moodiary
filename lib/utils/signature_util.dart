@@ -1,8 +1,9 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:moodiary/persistence/pref.dart';
 import 'package:moodiary/utils/notice_util.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class SignatureUtil {
   static String _hex(List<int> bytes) {
@@ -44,8 +45,8 @@ class SignatureUtil {
   }
 
   static Map<String, String>? checkTencent() {
-    final id = PrefUtil.getValue<String>('tencentId');
-    final key = PrefUtil.getValue<String>('tencentKey');
+    final id = PrefUtil.getValue<String>(PrefKeys.tencentId);
+    final key = PrefUtil.getValue<String>(PrefKeys.tencentKey);
     if (id == null || key == null) {
       toast.info(message: '请先配置Key');
       return null;

@@ -1,8 +1,10 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:dartx/dartx.dart';
+import 'package:crypto/crypto.dart';
+import 'package:moodiary/persistence/pref.dart';
 import 'package:moodiary/src/rust/api/aes.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class AesUtil {
   /// 生成密钥
@@ -42,13 +44,20 @@ class AesUtil {
     return utf8.decode(decrypted);
   }
 
+  /// HMAC-SHA256 替代不安全的 MD5
+  static String _hmacSha256(String key, String message) {
+    final hmac = Hmac(sha256, utf8.encode(key));
+    return hmac.convert(utf8.encode(message)).toString();
+  }
+
   /// 基于时间窗口加密
   static Future<Uint8List> encryptWithTimeWindow({
     required String data,
     required Duration validDuration,
   }) async {
     final timeSlot = _currentTimeSlot(validDuration);
-    final dynamicKey = timeSlot.toString().md5;
+    final deviceId = PrefUtil.getValue<String>(PrefKeys.uuid) ?? 'default-device';
+    final dynamicKey = _hmacSha256(deviceId, timeSlot.toString());
     final salt = _dailySalt();
 
     final aesKey = await deriveKey(salt: salt, userKey: dynamicKey);
@@ -62,11 +71,12 @@ class AesUtil {
     int toleranceSlots = 1,
   }) async {
     final currentSlot = _currentTimeSlot(validDuration);
+    final deviceId = PrefUtil.getValue<String>(PrefKeys.uuid) ?? 'default-device';
     final salt = _dailySalt();
 
     for (int offset = 0; offset <= toleranceSlots; offset++) {
       for (final slot in [currentSlot - offset, currentSlot + offset]) {
-        final dynamicKey = slot.toString().md5;
+        final dynamicKey = _hmacSha256(deviceId, slot.toString());
         final aesKey = await deriveKey(salt: salt, userKey: dynamicKey);
         try {
           final result = await decrypt(
@@ -88,8 +98,11 @@ class AesUtil {
     return now ~/ duration.inMilliseconds;
   }
 
+  /// 使用 HMAC-SHA256 + 设备 UUID 生成不可预测的 daily salt
   static String _dailySalt() {
     final date = DateTime.now();
-    return '${date.year}-${date.month}-${date.day}'.md5;
+    final dateStr = '${date.year}-${date.month}-${date.day}';
+    final deviceId = PrefUtil.getValue<String>(PrefKeys.uuid) ?? 'default-device';
+    return _hmacSha256(deviceId, dateStr);
   }
 }

@@ -1,4 +1,4 @@
-import 'package:adaptive_dialog/adaptive_dialog.dart';
+﻿import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -21,6 +21,7 @@ import 'package:moodiary/l10n/l10n.dart';
 import 'package:moodiary/utils/notice_util.dart';
 
 import 'setting_logic.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class SettingPage extends StatelessWidget {
   const SettingPage({super.key});
@@ -289,7 +290,7 @@ class SettingPage extends StatelessWidget {
             child: Column(
               children: [
                 // GetBuilder<SettingLogic>(
-                //     id: 'Local',
+                //     id: PrefKeys.local,
                 //     builder: (_) {
                 //       return AdaptiveSwitchListTile(
                 //         value: state.local,
@@ -300,7 +301,7 @@ class SettingPage extends StatelessWidget {
                 //       );
                 //     }),
                 GetBuilder<SettingLogic>(
-                  id: 'Lock',
+                  id: PrefKeys.lock,
                   builder: (_) {
                     return AdaptiveListTile(
                       trailing: Text(
@@ -392,7 +393,7 @@ class SettingPage extends StatelessWidget {
                   );
                 }),
                 GetBuilder<SettingLogic>(
-                  id: 'Lock',
+                  id: PrefKeys.lock,
                   builder: (_) {
                     return AdaptiveSwitchListTile(
                       value: state.lockNow,

@@ -1,3 +1,4 @@
+﻿import 'package:moodiary/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/api/api.dart';
@@ -17,7 +18,7 @@ class UpdateUtil {
       if (githubRelease.tagName!.split('v')[1].compareTo(currentVersion) > 0) {
         Get.dialog(UpdateDialogComponent(githubRelease: githubRelease));
       } else if (handle) {
-        toast.success(message: '已经是最新版本');
+        toast.success(message: Get.context!.l10n.updateIsLatest);
       }
     }
   }

@@ -1,3 +1,5 @@
+﻿import 'package:get/get.dart';
+import 'package:moodiary/l10n/l10n.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:local_auth_android/local_auth_android.dart';
 
@@ -18,7 +20,7 @@ class AuthUtil {
           signInTitle: "扫描您的指纹以继续",
         ),
       ],
-      localizedReason: '安全验证',
+      localizedReason: Get.context!.l10n.authSecurityVerify,
       options: AuthenticationOptions(
         useErrorDialogs: true,
         stickyAuth: true,

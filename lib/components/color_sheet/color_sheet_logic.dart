@@ -1,9 +1,10 @@
-import 'package:get/get.dart';
+﻿import 'package:get/get.dart';
 import 'package:moodiary/pages/home/setting/setting_logic.dart';
 import 'package:moodiary/persistence/pref.dart';
 import 'package:moodiary/utils/theme_util.dart';
 
 import 'color_sheet_state.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class ColorSheetLogic extends GetxController {
   final ColorSheetState state = ColorSheetState();
@@ -12,7 +13,7 @@ class ColorSheetLogic extends GetxController {
 
   //更改主题色
   Future<void> changeSeedColor(index) async {
-    await PrefUtil.setValue<int>('color', index);
+    await PrefUtil.setValue<int>(PrefKeys.color, index);
     state.currentColor = index;
     settingLogic.state.color = index;
     await ThemeUtil.forceUpdateTheme();

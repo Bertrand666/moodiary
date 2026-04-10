@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:moodiary/api/api.dart';
@@ -13,6 +13,7 @@ import 'package:moodiary/utils/cache_util.dart';
 import 'package:moodiary/utils/webdav_util.dart';
 
 import 'diary_state.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class DiaryLogic extends GetxController with GetTickerProviderStateMixin {
   final DiaryDomain domain;
@@ -58,7 +59,7 @@ class DiaryLogic extends GetxController with GetTickerProviderStateMixin {
   Future<void> getHitokoto() async {
     try {
       final res = await CacheUtil.getCacheList(
-        'hitokoto',
+        PrefKeys.hitokoto,
         Api.updateHitokoto,
         maxAgeMillis: 15 * 60000,
       );
@@ -71,7 +72,7 @@ class DiaryLogic extends GetxController with GetTickerProviderStateMixin {
   }
 
   Future<void> autoSync() async {
-    if (PrefUtil.getValue<bool>('autoSync') == true &&
+    if (PrefUtil.getValue<bool>(PrefKeys.autoSync) == true &&
         await WebDavUtil().checkConnectivity()) {
       final diary = await IsarUtil.getAllDiaries();
       await WebDavUtil().syncDiary(
@@ -263,7 +264,7 @@ class DiaryLogic extends GetxController with GetTickerProviderStateMixin {
   Future<void> changeViewMode(ViewModeType viewModeType) async {
     state.viewModeType.value = viewModeType;
     _checkShowTop();
-    await PrefUtil.setValue<int>('homeViewMode', viewModeType.number);
+    await PrefUtil.setValue<int>(PrefKeys.homeViewMode, viewModeType.number);
   }
 
   // 回到顶部函数
@@ -277,6 +278,6 @@ class DiaryLogic extends GetxController with GetTickerProviderStateMixin {
 
   // 更新标题
   void updateTitle() {
-    state.customTitleName.value = PrefUtil.getValue<String>('customTitleName')!;
+    state.customTitleName.value = PrefUtil.getValue<String>(PrefKeys.customTitleName)!;
   }
 }

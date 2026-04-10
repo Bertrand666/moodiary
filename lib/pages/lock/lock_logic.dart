@@ -1,4 +1,4 @@
-import 'package:flutter/animation.dart';
+﻿import 'package:flutter/animation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/persistence/pref.dart';
@@ -7,6 +7,7 @@ import 'package:moodiary/router/app_routes.dart';
 import 'package:moodiary/utils/auth_util.dart';
 
 import 'lock_state.dart';
+import 'package:moodiary/common/values/pref_keys.dart';
 
 class LockLogic extends GetxController with GetSingleTickerProviderStateMixin {
   final LockState state = LockState();
@@ -29,10 +30,10 @@ class LockLogic extends GetxController with GetSingleTickerProviderStateMixin {
 
   Future<void> _loadPassword() async {
     // 将旧版本 SharedPreferences 中的明文密码自动迁移到 SecureStorage
-    final oldPassword = PrefUtil.getValue<String>('password');
+    final oldPassword = PrefUtil.getValue<String>(PrefKeys.password);
     if (oldPassword != null && oldPassword.isNotEmpty) {
       await SecureStorageUtil.setValue('lockPassword', oldPassword);
-      await PrefUtil.removeValue('password');
+      await PrefUtil.removeValue(PrefKeys.password);
     }
     state.realPassword.value =
         await SecureStorageUtil.getValue('lockPassword') ?? '';
