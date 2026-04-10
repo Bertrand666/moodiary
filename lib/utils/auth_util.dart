@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:local_auth/local_auth.dart';
 import 'package:local_auth_android/local_auth_android.dart';
 
@@ -9,8 +7,8 @@ class AuthUtil {
   //生物识别
   static Future<bool> check() async {
     return await _authentication.authenticate(
-      authMessages: [
-        const AndroidAuthMessages(
+      authMessages: const [
+        AndroidAuthMessages(
           biometricHint: "",
           biometricNotRecognized: "验证失败",
           biometricSuccess: "验证成功",
@@ -25,7 +23,7 @@ class AuthUtil {
         useErrorDialogs: true,
         stickyAuth: true,
         sensitiveTransaction: true,
-        biometricOnly: Platform.isWindows ? false : true,
+        biometricOnly: true,
       ),
     );
   }

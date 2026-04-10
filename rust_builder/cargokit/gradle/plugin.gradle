@@ -88,82 +88,83 @@ class CargoKitPlugin implements Plugin<Project> {
 
     static String file;
 
-    private Plugin findFlutterPlugin(Project rootProject) {
-        _findFlutterPlugin(rootProject.childProjects)
+    private boolean isFlutterPlugin(Plugin plugin) {
+        def name = plugin.class.name
+        return name == "FlutterPlugin" || name == "com.flutter.gradle.FlutterPlugin"
     }
 
-    private Plugin _findFlutterPlugin(Map projects) {
-        for (project in projects) {
-            for (plugin in project.value.getPlugins()) {
-                if (plugin.class.name == "FlutterPlugin") {
-                    return plugin;
-                }
-            }
-            def plugin = _findFlutterPlugin(project.value.childProjects);
-            if (plugin != null) {
-                return plugin;
-            }
+    private boolean projectHasFlutterPlugin(Project p) {
+        for (plugin in p.getPlugins()) {
+            if (isFlutterPlugin(plugin)) return true
         }
-        return null;
+        return false
     }
 
     @Override
     void apply(Project project) {
-        def plugin = findFlutterPlugin(project.rootProject);
-
         project.extensions.create("cargokit", CargoKitExtension)
-
-        if (plugin == null) {
-            print("Flutter plugin not found, CargoKit plugin will not be applied.")
-            return;
-        }
 
         def cargoBuildDir = "${project.buildDir}/build"
 
-        // Determine if the project is an application or library
-        def isApplication = plugin.project.plugins.hasPlugin('com.android.application')
-        def variants = isApplication ? plugin.project.android.applicationVariants : plugin.project.android.libraryVariants
-
-        variants.all { variant ->
-
-            final buildType = variant.buildType.name
-
-            def cargoOutputDir = "${project.buildDir}/jniLibs/${buildType}";
-            def jniLibs = project.android.sourceSets.maybeCreate(buildType).jniLibs;
-            jniLibs.srcDir(new File(cargoOutputDir))
-
-            def platforms = plugin.getTargetPlatforms().collect()
-
-            // Same thing addFlutterDependencies does in flutter.gradle
-            if (buildType == "debug") {
-                platforms.add("android-x86")
-                platforms.add("android-x64")
+        // Wait until all projects are evaluated before accessing variants and Android config
+        project.getGradle().projectsEvaluated {
+            // Find the app project (it has com.android.application and optionally FlutterPlugin)
+            def appProject = project.rootProject.allprojects.find { p ->
+                p.plugins.hasPlugin('com.android.application')
             }
 
-            // The task name depends on plugin properties, which are not available
-            // at this point
-            project.getGradle().afterProject {
-                def taskName = "cargokitCargoBuild${project.cargokit.libname.capitalize()}${buildType.capitalize()}";
+            if (appProject == null) {
+                print("Flutter/App project not found, CargoKit plugin will not be applied.")
+                return
+            }
+
+            def variants = appProject.android.applicationVariants
+
+            variants.each { variant ->
+                final buildType = variant.buildType.name
+
+                def cargoOutputDir = "${project.buildDir}/jniLibs/${buildType}"
+                // Register jniLibs source directory so Gradle picks up the compiled .so files
+                project.android.sourceSets.maybeCreate(buildType).jniLibs.srcDir(new File(cargoOutputDir))
+
+                // Get target platforms from Flutter's Gradle property, or default to arm64
+                def targetPlatformProp = appProject.findProperty("target-platform")
+                def platforms = targetPlatformProp
+                    ? targetPlatformProp.toString().split(",").collect { it.trim() }
+                    : ["android-arm64"]
+
+                // Same thing addFlutterDependencies does in flutter.gradle
+                if (buildType == "debug") {
+                    if (!platforms.contains("android-x86")) platforms.add("android-x86")
+                    if (!platforms.contains("android-x64")) platforms.add("android-x64")
+                }
+
+                def taskName = "cargokitCargoBuild${project.cargokit.libname.capitalize()}${buildType.capitalize()}"
 
                 if (project.tasks.findByName(taskName)) {
                     return
                 }
 
-                if (plugin.project.android.ndkVersion == null) {
+                if (appProject.android.ndkVersion == null) {
                     throw new GradleException("Please set 'android.ndkVersion' in 'app/build.gradle'.")
                 }
 
+                def compileSdkInt = appProject.android.compileSdkVersion instanceof String
+                    ? appProject.android.compileSdkVersion.replaceAll("[^0-9]", "") as int
+                    : appProject.android.compileSdkVersion as int
+
                 def task = project.tasks.create(taskName, CargoKitBuildTask.class) {
-                    buildMode = variant.buildType.name
-                    buildDir = cargoBuildDir
-                    outputDir = cargoOutputDir
-                    ndkVersion = plugin.project.android.ndkVersion
-                    sdkDirectory = plugin.project.android.sdkDirectory
-                    minSdkVersion = plugin.project.android.defaultConfig.minSdkVersion.apiLevel as int
-                    compileSdkVersion = plugin.project.android.compileSdkVersion.substring(8) as int
-                    targetPlatforms = platforms
-                    pluginFile = CargoKitPlugin.file
+                    it.buildMode = buildType
+                    it.buildDir = cargoBuildDir
+                    it.outputDir = cargoOutputDir
+                    it.ndkVersion = appProject.android.ndkVersion
+                    it.sdkDirectory = appProject.android.sdkDirectory.toString()
+                    it.minSdkVersion = appProject.android.defaultConfig.minSdkVersion.apiLevel as int
+                    it.compileSdkVersion = compileSdkInt
+                    it.targetPlatforms = platforms
+                    it.pluginFile = CargoKitPlugin.file
                 }
+
                 def onTask = { newTask ->
                     if (newTask.name == "merge${buildType.capitalize()}NativeLibs") {
                         newTask.dependsOn task

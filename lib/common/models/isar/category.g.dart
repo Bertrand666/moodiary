@@ -24,11 +24,18 @@ const CategorySchema = IsarGeneratedSchema(
       IsarPropertySchema(name: 'categoryName', type: IsarType.string),
       IsarPropertySchema(name: 'parentId', type: IsarType.string),
       IsarPropertySchema(name: 'level', type: IsarType.string),
+      IsarPropertySchema(name: 'domain', type: IsarType.string),
     ],
     indexes: [
       IsarIndexSchema(
         name: 'level',
         properties: ["level"],
+        unique: false,
+        hash: false,
+      ),
+      IsarIndexSchema(
+        name: 'domain',
+        properties: ["domain"],
         unique: false,
         hash: false,
       ),
@@ -55,6 +62,7 @@ int serializeCategory(IsarWriter writer, Category object) {
     }
   }
   IsarCore.writeString(writer, 4, object.level);
+  IsarCore.writeString(writer, 5, object.domain);
   return Isar.fastHash(object.id);
 }
 
@@ -64,6 +72,7 @@ Category deserializeCategory(IsarReader reader) {
   object.id = IsarCore.readString(reader, 1) ?? '';
   object.categoryName = IsarCore.readString(reader, 2) ?? '';
   object.parentId = IsarCore.readString(reader, 3);
+  object.domain = IsarCore.readString(reader, 5) ?? 'normal';
   return object;
 }
 
@@ -78,6 +87,8 @@ dynamic deserializeCategoryProp(IsarReader reader, int property) {
       return IsarCore.readString(reader, 3);
     case 4:
       return IsarCore.readString(reader, 4) ?? '';
+    case 5:
+      return IsarCore.readString(reader, 5) ?? 'normal';
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -849,6 +860,20 @@ extension CategoryQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterCondition(property: 4, value: ''),
+      );
+    });
+  }
+}
+
+extension CategoryQueryDomainFilter
+    on QueryBuilder<Category, Category, QFilterCondition> {
+  QueryBuilder<Category, Category, QAfterFilterCondition> domainEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(property: 5, value: value, caseSensitive: caseSensitive),
       );
     });
   }

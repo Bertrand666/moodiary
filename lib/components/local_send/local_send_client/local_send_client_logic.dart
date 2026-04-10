@@ -167,7 +167,7 @@ class LocalSendClientLogic extends GetxController {
           'thumbnail',
           await dio.MultipartFile.fromFile(
             filePath,
-            filename: 'thumbnail-${videoName.substring(6, 42)}.jpeg',
+            filename: FileUtil.videoNameToThumbnailName(videoName),
           ),
         ),
       );

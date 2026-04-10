@@ -364,9 +364,6 @@ class MediaUtil {
     int? size,
     double? imageAspectRatio,
   }) async {
-    if (Platform.isWindows) {
-      return null;
-    }
     final quality = PrefUtil.getValue<int>('quality');
     final imageSize =
         size ??

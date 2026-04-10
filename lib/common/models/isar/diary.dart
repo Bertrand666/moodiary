@@ -18,8 +18,8 @@ class Diary {
   @Index()
   String? categoryId;
 
-  // 分域：普通日记 / 回忆录（仅运行时使用，不入库）
-  @ignore
+  // 分域：普通日记 / 回忆录，持久化并建立索引以支持 DB 层过滤
+  @Index()
   String domain = DiaryDomain.normal.value;
 
   //标题

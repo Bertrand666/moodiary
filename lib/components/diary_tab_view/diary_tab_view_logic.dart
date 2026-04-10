@@ -21,19 +21,29 @@ class DiaryTabViewLogic extends GetxController {
 
   @override
   void onReady() async {
-    await _getDiary();
+    try {
+      await _getDiary();
+    } catch (e, s) {
+      print('[DiaryTabViewLogic] onReady error: $e\n$s');
+      state.isFetching.value = false;
+    }
     super.onReady();
   }
 
   Future<void> _getDiary() async {
     state.isFetching.value = true;
-    state.diaryList.value = await IsarUtil.getDiaryByCategory(
-      state.categoryId,
-      0,
-      state.initLen,
-      domain: state.domain,
-    );
-    state.isFetching.value = false;
+    try {
+      state.diaryList.value = await IsarUtil.getDiaryByCategory(
+        state.categoryId,
+        0,
+        state.initLen,
+        domain: state.domain,
+      );
+    } catch (e, s) {
+      print('[DiaryTabViewLogic] _getDiary error (domain=${state.domain}, category=${state.categoryId}): $e\n$s');
+    } finally {
+      state.isFetching.value = false;
+    }
   }
 
   Future<void> updateDiary() async {

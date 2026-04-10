@@ -18,7 +18,12 @@ class CalendarLogic extends GetxController {
 
   @override
   void onReady() async {
-    await getMonthDiary(state.currentMonth.value);
+    try {
+      await getMonthDiary(state.currentMonth.value);
+    } catch (e, s) {
+      print('[CalendarLogic] onReady error: $e\n$s');
+      state.isFetching.value = false;
+    }
     super.onReady();
   }
 
@@ -26,10 +31,13 @@ class CalendarLogic extends GetxController {
   Future<void> getMonthDiary(DateTime value) async {
     state.isFetching.value = true;
     state.currentMonth.value = value;
-    // state.currentMonthDiaryList.value =
-    //     await IsarUtil.getDiaryByMonth(value.year, value.month);
-    state.currentMonthDiaryList.value = await IsarUtil.getAllDiariesSorted();
-    state.isFetching.value = false;
+    try {
+      state.currentMonthDiaryList.value = await IsarUtil.getAllDiariesSorted();
+    } catch (e, s) {
+      print('[CalendarLogic] getMonthDiary error: $e\n$s');
+    } finally {
+      state.isFetching.value = false;
+    }
   }
 
   int _pendingScrollOperations = 0;

@@ -10,7 +10,7 @@ class Category {
 
   late String categoryName;
 
-  @ignore
+  @Index()
   String domain = DiaryDomain.normal.value;
 
   String? parentId;

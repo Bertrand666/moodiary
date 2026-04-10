@@ -71,9 +71,13 @@ class IsarUtil {
   }
 
   static Diary _hydrateDiaryDomain(Diary diary) {
-    diary.domain = _isMemoirDiary(diary)
-        ? DiaryDomain.memoir.value
-        : DiaryDomain.normal.value;
+    // domain 已持久化，仅对旧数据再根据 tags 修正（domain 字段为默认就进行 tag 推断）
+    if (diary.domain == DiaryDomain.normal.value) {
+      final inferredIsMemoir = _isMemoirDiary(diary);
+      if (inferredIsMemoir) {
+        diary.domain = DiaryDomain.memoir.value;
+      }
+    }
     return diary;
   }
 
@@ -88,9 +92,11 @@ class IsarUtil {
   }
 
   static Category _hydrateCategoryDomain(Category category) {
-    category.domain = _isMemoirCategory(category)
-        ? DiaryDomain.memoir.value
-        : DiaryDomain.normal.value;
+    // domain 已持久化；仅对旧数据再根据 id 前缀修正
+    if (category.domain == DiaryDomain.normal.value &&
+        category.id.startsWith('memoir_')) {
+      category.domain = DiaryDomain.memoir.value;
+    }
     return category;
   }
 
@@ -112,8 +118,11 @@ class IsarUtil {
     String fileName,
   ) async {
     final isar = Isar.open(schemas: _schemas, directory: join(dir, 'database'));
-    isar.copyToFile(join(path, fileName));
-    isar.close();
+    try {
+      isar.copyToFile(join(path, fileName));
+    } finally {
+      isar.close();
+    }
   }
 
   //插入一条日记
@@ -465,10 +474,11 @@ class IsarUtil {
   static List<Category> getAllCategory({
     DiaryDomain domain = DiaryDomain.normal,
   }) {
+    // 利用 domain 索引在 DB 层过滤
     final list = _isar.categorys
         .where()
+        .domainEqualTo(domain.value)
         .findAll()
-        .where((category) => _matchCategoryDomain(category, domain))
         .map(_hydrateCategoryDomain)
         .toList();
     list.sort((a, b) => a.id.compareTo(b.id));
@@ -478,12 +488,14 @@ class IsarUtil {
   static Future<List<Category>> getAllCategoryAsync({
     DiaryDomain domain = DiaryDomain.normal,
   }) async {
-    final list = (await _isar.categorys.where().findAllAsync())
-        .where((category) => _matchCategoryDomain(category, domain))
-        .map(_hydrateCategoryDomain)
-        .toList();
-    list.sort((a, b) => a.id.compareTo(b.id));
-    return list;
+    // 利用 domain 索引在 DB 层过滤
+    final list = await _isar.categorys
+        .where()
+        .domainEqualTo(domain.value)
+        .findAllAsync();
+    final result = list.map(_hydrateCategoryDomain).toList();
+    result.sort((a, b) => a.id.compareTo(b.id));
+    return result;
   }
 
   //获取对应分类的日记,如果为空，返回全部日记
@@ -493,13 +505,22 @@ class IsarUtil {
     int limit, {
     DiaryDomain domain = DiaryDomain.normal,
   }) async {
-    final diaries = await _isar.diarys.where().showEqualTo(true).findAllAsync();
+    // 当指定分类时，利用 categoryId 索引在 DB 层过滤，避免全量加载
+    final List<Diary> raw;
+    if (categoryId != null) {
+      raw = await _isar.diarys
+          .where()
+          .categoryIdEqualTo(categoryId)
+          .findAllAsync();
+    } else {
+      raw = await _isar.diarys.where().showEqualTo(true).findAllAsync();
+    }
+
     final filtered =
-        diaries
+        raw
             .where((diary) {
-              if (!_matchDiaryDomain(diary, domain)) return false;
-              if (categoryId == null) return true;
-              return diary.categoryId == categoryId;
+              if (categoryId != null && !diary.show) return false;
+              return _matchDiaryDomain(diary, domain);
             })
             .map(_hydrateDiaryDomain)
             .toList()
@@ -654,6 +675,36 @@ class IsarUtil {
       });
     }
     isar.close();
+  }
+
+  /// 为所有现有日记和分类回填 domain 字段（一次性迁移）
+  /// 在 MergeUtil 中通过 SharedPreferences 标志确保只运行一次
+  static Future<void> migrateDomainField() async {
+    final diaryCount = _isar.diarys.where().count();
+    for (var i = 0; i < diaryCount; i += 50) {
+      final batch = await _isar.diarys.where().findAllAsync(
+        offset: i,
+        limit: 50,
+      );
+      await _isar.writeAsync((isar) {
+        for (final diary in batch) {
+          final isMemoir = _isMemoirDiary(diary);
+          diary.domain = (isMemoir ? DiaryDomain.memoir : DiaryDomain.normal).value;
+          isar.diarys.put(diary);
+        }
+      });
+    }
+    final categoryCount = _isar.categorys.count();
+    for (var i = 0; i < categoryCount; i += 50) {
+      final batch = _isar.categorys.where().findAll(offset: i, limit: 50);
+      await _isar.writeAsync((isar) {
+        for (final category in batch) {
+          final isMemoir = _isMemoirCategory(category);
+          category.domain = (isMemoir ? DiaryDomain.memoir : DiaryDomain.normal).value;
+          isar.categorys.put(category);
+        }
+      });
+    }
   }
 
   static void insertNewImage({

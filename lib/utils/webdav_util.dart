@@ -22,10 +22,14 @@ class WebDavUtil {
 
   webdav.Client? _client;
 
-  List<String> get options => PrefUtil.getValue<List<String>>('webDavOption')!;
+  bool get hasOption => PrefUtil.getValue<bool>('hasWebDavOption') ?? false;
 
-  bool get hasOption =>
-      PrefUtil.getValue<List<String>>('webDavOption')!.isNotEmpty;
+  Future<List<String>> loadCredentials() async {
+    final url = await SecureStorageUtil.getValue('webDavUrl') ?? '';
+    final user = await SecureStorageUtil.getValue('webDavUser') ?? '';
+    final password = await SecureStorageUtil.getValue('webDavPassword') ?? '';
+    return [url, user, password];
+  }
 
   WebDavUtil._();
 
@@ -33,21 +37,35 @@ class WebDavUtil {
 
   factory WebDavUtil() => _instance;
 
-  void initWebDav() {
-    final webDavOption = options;
-    if (webDavOption.isEmpty) {
+  Future<void> initWebDav() async {
+    // 将旧版本 SharedPreferences 中的明文凭据自动迁移到 SecureStorage
+    final oldOptions = PrefUtil.getValue<List<String>>('webDavOption');
+    if (oldOptions != null && oldOptions.isNotEmpty) {
+      await SecureStorageUtil.setValue('webDavUrl', oldOptions[0]);
+      await SecureStorageUtil.setValue('webDavUser', oldOptions[1]);
+      await SecureStorageUtil.setValue('webDavPassword', oldOptions[2]);
+      await PrefUtil.setValue<bool>('hasWebDavOption', true);
+      await PrefUtil.setValue<List<String>>('webDavOption', []);
+    }
+
+    if (!hasOption) {
+      _client = null;
+      return;
+    }
+    final credentials = await loadCredentials();
+    if (credentials[0].isEmpty) {
       _client = null;
       return;
     }
     if (_client != null) {
       _client = null;
     }
-    // 尝试连接，如果失败，
+    // 尝试连接
     try {
       _client = webdav.newClient(
-        webDavOption[0],
-        user: webDavOption[1],
-        password: webDavOption[2],
+        credentials[0],
+        user: credentials[1],
+        password: credentials[2],
         debug: false,
       );
     } catch (e) {
@@ -103,13 +121,19 @@ class WebDavUtil {
     required String username,
     required String password,
   }) async {
-    await PrefUtil.setValue('webDavOption', [baseUrl, username, password]);
-    initWebDav();
+    await SecureStorageUtil.setValue('webDavUrl', baseUrl);
+    await SecureStorageUtil.setValue('webDavUser', username);
+    await SecureStorageUtil.setValue('webDavPassword', password);
+    await PrefUtil.setValue<bool>('hasWebDavOption', true);
+    await initWebDav();
   }
 
   Future<void> removeWebDavOption() async {
     _client = null;
-    await PrefUtil.setValue<List<String>>('webDavOption', []);
+    await SecureStorageUtil.remove('webDavUrl');
+    await SecureStorageUtil.remove('webDavUser');
+    await SecureStorageUtil.remove('webDavPassword');
+    await PrefUtil.setValue<bool>('hasWebDavOption', false);
   }
 
   Future<Map<String, String>> fetchServerSyncData() async {
@@ -160,7 +184,7 @@ class WebDavUtil {
     );
     await _deleteFiles(
       diary.videoName
-          .map((videoName) => 'thumbnail-${videoName.substring(6, 42)}.jpeg')
+          .map(FileUtil.videoNameToThumbnailName)
           .toList(),
       '${WebDavOptions.videoPath}/${diary.id}',
       'thumbnail',
@@ -337,7 +361,7 @@ class WebDavUtil {
           .where((element) => !newDiary.videoName.contains(element))
           .toList();
       final needToDeleteThumbnail = needToDeleteVideo
-          .map((videoName) => 'thumbnail-${videoName.substring(6, 42)}.jpeg')
+          .map(FileUtil.videoNameToThumbnailName)
           .toList();
       await _deleteFiles(
         needToDeleteImage,
@@ -457,7 +481,7 @@ class WebDavUtil {
     for (var fileName in fileNames) {
       final filePath = FileUtil.getRealPath(type, fileName);
       fileName = type == 'thumbnail'
-          ? 'thumbnail-${fileName.substring(6, 42)}.jpeg'
+          ? FileUtil.videoNameToThumbnailName(fileName)
           : fileName;
       if (existingFiles.any((file) => file.name == fileName)) {
         logger.d('$type file already exists: $fileName');
@@ -588,7 +612,7 @@ class WebDavUtil {
 
     for (final fileName in fileNames) {
       final serverFilePath = type == 'thumbnail'
-          ? '$resourcePath/thumbnail-${fileName.substring(6, 42)}.jpeg'
+          ? '$resourcePath/${FileUtil.videoNameToThumbnailName(fileName)}'
           : '$resourcePath/$fileName';
       final localFilePath = FileUtil.getRealPath(type, fileName);
 

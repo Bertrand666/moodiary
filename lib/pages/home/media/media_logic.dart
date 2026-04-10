@@ -1,5 +1,4 @@
 import 'package:flutter/animation.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/common/values/media_type.dart';
 import 'package:moodiary/utils/file_util.dart';
@@ -24,7 +23,13 @@ class MediaLogic extends GetxController with GetSingleTickerProviderStateMixin {
 
   @override
   void onReady() async {
-    await getFilePath(state.mediaType.value);
+    try {
+      await getFilePath(state.mediaType.value);
+    } catch (e, s) {
+      print('[MediaLogic] onReady error: $e\n$s');
+      state.isFetching = false;
+      update();
+    }
     super.onReady();
   }
 
@@ -44,14 +49,20 @@ class MediaLogic extends GetxController with GetSingleTickerProviderStateMixin {
       state.isFetching = true;
       update();
     }
-    state.datetimeMediaMap = await compute(switch (mediaType) {
-      MediaType.image => MediaUtil.groupImageFileByDate,
-      MediaType.audio => MediaUtil.groupAudioFileByDate,
-      MediaType.video => MediaUtil.groupVideoFileByDate,
-    }, await FileUtil.getDirFilePath(mediaType.value));
-    state.dateTimeList = state.datetimeMediaMap.keys.toList();
-    state.isFetching = false;
-    update();
+    try {
+      final filePaths = await FileUtil.getDirFilePath(mediaType.value);
+      state.datetimeMediaMap = switch (mediaType) {
+        MediaType.image => MediaUtil.groupImageFileByDate(filePaths),
+        MediaType.audio => MediaUtil.groupAudioFileByDate(filePaths),
+        MediaType.video => MediaUtil.groupVideoFileByDate(filePaths),
+      };
+      state.dateTimeList = state.datetimeMediaMap.keys.toList();
+    } catch (e, s) {
+      print('[MediaLogic] getFilePath error: $e\n$s');
+    } finally {
+      state.isFetching = false;
+      update();
+    }
   }
 
   Future<void> changeMediaType(MediaType mediaType) async {

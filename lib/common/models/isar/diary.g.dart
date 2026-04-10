@@ -42,6 +42,7 @@ const DiarySchema = IsarGeneratedSchema(
       IsarPropertySchema(name: 'aspect', type: IsarType.double),
       IsarPropertySchema(name: 'yM', type: IsarType.string),
       IsarPropertySchema(name: 'yMd', type: IsarType.string),
+      IsarPropertySchema(name: 'domain', type: IsarType.string),
     ],
     indexes: [
       IsarIndexSchema(
@@ -71,6 +72,12 @@ const DiarySchema = IsarGeneratedSchema(
       IsarIndexSchema(
         name: 'yMd',
         properties: ["yMd"],
+        unique: false,
+        hash: false,
+      ),
+      IsarIndexSchema(
+        name: 'domain',
+        properties: ["domain"],
         unique: false,
         hash: false,
       ),
@@ -175,6 +182,7 @@ int serializeDiary(IsarWriter writer, Diary object) {
   IsarCore.writeDouble(writer, 20, object.aspect ?? double.nan);
   IsarCore.writeString(writer, 21, object.yM);
   IsarCore.writeString(writer, 22, object.yMd);
+  IsarCore.writeString(writer, 23, object.domain);
   return object.isarId;
 }
 
@@ -353,6 +361,7 @@ Diary deserializeDiary(IsarReader reader) {
       object.aspect = value;
     }
   }
+  object.domain = IsarCore.readString(reader, 23) ?? 'normal';
   return object;
 }
 
@@ -559,6 +568,8 @@ dynamic deserializeDiaryProp(IsarReader reader, int property) {
       return IsarCore.readString(reader, 21) ?? '';
     case 22:
       return IsarCore.readString(reader, 22) ?? '';
+    case 23:
+      return IsarCore.readString(reader, 23) ?? 'normal';
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -3926,6 +3937,19 @@ extension DiaryQueryFilter on QueryBuilder<Diary, Diary, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterCondition(property: 22, value: ''),
+      );
+    });
+  }
+}
+
+extension DiaryQueryDomainFilter on QueryBuilder<Diary, Diary, QFilterCondition> {
+  QueryBuilder<Diary, Diary, QAfterFilterCondition> domainEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(property: 23, value: value, caseSensitive: caseSensitive),
       );
     });
   }

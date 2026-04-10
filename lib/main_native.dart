@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
@@ -14,7 +13,6 @@ import 'package:intl/intl.dart';
 import 'package:moodiary/common/values/language.dart';
 import 'package:moodiary/components/env_badge/badge.dart';
 import 'package:moodiary/components/frosted_glass_overlay/frosted_glass_overlay_view.dart';
-import 'package:moodiary/components/window_buttons/window_buttons.dart';
 import 'package:moodiary/config/env.dart';
 import 'package:moodiary/l10n/app_localizations.dart';
 import 'package:moodiary/l10n/l10n.dart';
@@ -36,7 +34,7 @@ Future<void> _initSystem() async {
   await HiveUtil().init();
   unawaited(RustLib.init());
   unawaited(_platFormOption());
-  WebDavUtil().initWebDav();
+  unawaited(WebDavUtil().initWebDav());
   await ThemeUtil().buildTheme();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
@@ -71,14 +69,6 @@ Future<void> _platFormOption() async {
   if (Platform.isAndroid) {
     await FlutterDisplayMode.setHighRefreshRate();
     MediaUtil.useAndroidImagePicker();
-  }
-  if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-    doWhenWindowReady(() {
-      appWindow.minSize = const Size(600, 640);
-      appWindow.size = const Size(1024, 640);
-      appWindow.alignment = Alignment.center;
-      appWindow.show();
-    });
   }
 }
 
@@ -141,8 +131,6 @@ class Moodiary extends StatelessWidget {
                 right: -15,
                 child: EnvBadge(envMode: '测试版'),
               ),
-            if (Platform.isWindows || Platform.isMacOS || Platform.isLinux)
-              const Positioned(top: 0, left: 0, right: 0, child: MoveTitle()),
           ],
         );
         return smartDialog(context, home);

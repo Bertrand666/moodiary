@@ -13,22 +13,20 @@ class WebDavLogic extends GetxController {
 
   WebDavUtil get webDav => WebDavUtil();
 
-  late TextEditingController webDavUrlController = TextEditingController(
-    text: state.hasOption.value ? state.currentOptions[0] : null,
-  );
+  late TextEditingController webDavUrlController = TextEditingController();
   late FocusNode webDavUrlFocusNode = FocusNode();
-  late TextEditingController usernameController = TextEditingController(
-    text: state.hasOption.value ? state.currentOptions[1] : null,
-  );
+  late TextEditingController usernameController = TextEditingController();
   late FocusNode usernameFocusNode = FocusNode();
-  late TextEditingController passwordController = TextEditingController(
-    text: state.hasOption.value ? state.currentOptions[2] : null,
-  );
+  late TextEditingController passwordController = TextEditingController();
   late FocusNode passwordFocusNode = FocusNode();
 
   @override
   void onReady() async {
     if (state.hasOption.value) {
+      final credentials = await webDav.loadCredentials();
+      webDavUrlController.text = credentials[0];
+      usernameController.text = credentials[1];
+      passwordController.text = credentials[2];
       await checkConnectivity();
     }
     await checkHasUserKey();

@@ -8,7 +8,6 @@ class WebDavState {
   final formKey = GlobalKey<FormState>();
 
   RxBool hasOption = WebDavUtil().hasOption.obs;
-  List<String> currentOptions = WebDavUtil().options;
 
   Rx<WebDavConnectivityStatus> connectivityStatus =
       WebDavConnectivityStatus.connecting.obs;

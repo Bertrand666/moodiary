@@ -1,0 +1,30 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Launch Emulator",
+      "type": "shell",
+      "command": "flutter emulators --launch Pixel_7a",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "close": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Android",
+      "type": "shell",
+      "command": "flutter run -d emulator-5554",
+      "group": "build",
+      "dependsOn": "Launch Emulator",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}

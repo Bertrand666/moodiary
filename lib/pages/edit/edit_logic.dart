@@ -263,8 +263,7 @@ class EditLogic extends GetxController {
   void _listenCount() {
     state.totalCount.value =
         markdownTextEditingController?.text.length ??
-        quillController?.selection.baseOffset ??
-        0;
+        (quillController != null ? _toPlainText().length : 0);
   }
 
   // 插入换行时自动首行缩进

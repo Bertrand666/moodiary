@@ -71,8 +71,12 @@ class PrefUtil {
     'homeViewMode',
     //自动获取天气
     'autoWeather',
-    //webdav配置
+    //webdav配置（凭据已迁移至 SecureStorage）
     'webDavOption',
+    // webdav是否已配置标志（凭据不存 SharedPreferences）
+    'hasWebDavOption',
+    // domain 字段持久化迁移标志
+    'domainFieldMigrated',
     // 日记展示头图
     'diaryHeader',
     // 首行缩进
@@ -172,9 +176,9 @@ class PrefUtil {
       _prefs.getInt('homeViewMode') ?? ViewModeType.list.number,
     );
     await _prefs.setBool('autoWeather', _prefs.getBool('autoWeather') ?? false);
-    await _prefs.setStringList(
-      'webDavOption',
-      _prefs.getStringList('webDavOption') ?? [],
+    await _prefs.setBool(
+      'hasWebDavOption',
+      _prefs.getBool('hasWebDavOption') ?? false,
     );
     await _prefs.setBool('diaryHeader', _prefs.getBool('diaryHeader') ?? true);
     await _prefs.setBool(

@@ -3,7 +3,6 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/components/desktop_wrapper/background.dart';
-import 'package:moodiary/components/window_buttons/window_buttons.dart';
 import 'package:moodiary/pages/about/about_logic.dart';
 import 'package:moodiary/pages/about/about_view.dart';
 import 'package:moodiary/pages/agreement/agreement_view.dart';
@@ -191,17 +190,10 @@ class MoodiaryGetPage extends GetPage {
   }) : super(
          curve: Curves.linear,
          page: () {
-           final body = PageAdaptiveBackground(
+           return PageAdaptiveBackground(
              isHome: name == AppRoutes.homePage,
              child: page(),
            );
-           if (Platform.isAndroid || Platform.isIOS) {
-             return body;
-           } else {
-             return Column(
-               children: [const WindowsBar(), Expanded(child: body)],
-             );
-           }
          },
          customTransition: _MoodiaryPageTransition(useFade: useFade),
        );
@@ -225,15 +217,10 @@ class MoodiaryFadeInPageRoute<T> extends PageRoute<T>
 
   @override
   Widget buildContent(BuildContext context) {
-    final body = PageAdaptiveBackground(
+    return PageAdaptiveBackground(
       isHome: settings.name == AppRoutes.homePage,
       child: builder(context),
     );
-    if (Platform.isAndroid || Platform.isIOS) {
-      return body;
-    } else {
-      return Column(children: [const WindowsBar(), Expanded(child: body)]);
-    }
   }
 
   @override

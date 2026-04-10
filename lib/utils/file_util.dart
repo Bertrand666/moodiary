@@ -146,22 +146,19 @@ class FileUtil {
       zipPath,
       '心绪日记${datetime.toString().split(' ')[0]}备份.zip',
     );
+    final isarFileName = '${datetime.millisecondsSinceEpoch}.isar';
     final zip = Zip(filePath: filePath);
     await Future.wait([
       zip.addDir(dirPath: join(dataPath, 'image'), basePath: 'image'),
       zip.addDir(dirPath: join(dataPath, 'audio'), basePath: 'audio'),
       zip.addDir(dirPath: join(dataPath, 'video'), basePath: 'video'),
       zip.addDir(dirPath: join(dataPath, 'font'), basePath: 'font'),
-      IsarUtil.exportIsar(
-        dataPath,
-        zipPath,
-        '${datetime.millisecondsSinceEpoch}.isar',
-      ),
-      zip.addFile(
-        filePath: join(zipPath, '${datetime.millisecondsSinceEpoch}.isar'),
-        zipPath: '${datetime.millisecondsSinceEpoch}.isar',
-      ),
     ]);
+    await IsarUtil.exportIsar(dataPath, zipPath, isarFileName);
+    await zip.addFile(
+      filePath: join(zipPath, isarFileName),
+      zipPath: isarFileName,
+    );
     await zip.finish();
     zip.dispose();
     return filePath;
@@ -201,10 +198,20 @@ class FileUtil {
     await IsarUtil.dataMigration(_cachePath);
   }
 
+  /// 将视频文件名（格式 "video-{uuid}.ext"）转换为对应缩略图文件名
+  /// 视频文件名前缀 "video-" 为 6 字符，UUID 为 36 字符
+  static String videoNameToThumbnailName(String videoName) {
+    const prefixLen = 6;
+    const uuidLen = 36;
+    if (videoName.length < prefixLen + uuidLen) {
+      throw ArgumentError('Invalid video name format: $videoName');
+    }
+    return 'thumbnail-${videoName.substring(prefixLen, prefixLen + uuidLen)}.jpeg';
+  }
+
   static String getRealPath(String fileType, String fileName) {
     if (fileType == 'thumbnail') {
-      final thumbnailName = 'thumbnail-${fileName.substring(6, 42)}.jpeg';
-      return join(_filePath, 'video', thumbnailName);
+      return join(_filePath, 'video', videoNameToThumbnailName(fileName));
     }
     return join(_filePath, fileType, fileName);
   }
@@ -317,8 +324,7 @@ class FileUtil {
         usedAudios.addAll(diary.audioName);
         usedVideos.addAll(diary.videoName);
         for (final name in diary.videoName) {
-          final thumbnailName = 'thumbnail-${name.substring(6, 42)}.jpeg';
-          usedVideos.add(thumbnailName);
+          usedVideos.add(FileUtil.videoNameToThumbnailName(name));
         }
       }
     }
@@ -333,13 +339,13 @@ class FileUtil {
       if (Bind.isRegistered<AudioPlayerLogic>(tag: path)) {
         Bind.delete<AudioPlayerLogic>(tag: path);
       }
-
-      // 并行删除文件
-      await Future.wait([
-        FileUtil.deleteMediaFiles(imagesToDelete, MediaType.image.value),
-        FileUtil.deleteMediaFiles(audiosToDelete, MediaType.audio.value),
-        FileUtil.deleteMediaFiles(videosToDelete, MediaType.video.value),
-      ]);
     }
+
+    // 并行删除文件
+    await Future.wait([
+      FileUtil.deleteMediaFiles(imagesToDelete, MediaType.image.value),
+      FileUtil.deleteMediaFiles(audiosToDelete, MediaType.audio.value),
+      FileUtil.deleteMediaFiles(videosToDelete, MediaType.video.value),
+    ]);
   }
 }

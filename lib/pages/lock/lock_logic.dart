@@ -1,6 +1,8 @@
 import 'package:flutter/animation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:moodiary/persistence/pref.dart';
+import 'package:moodiary/persistence/secure_storage.dart';
 import 'package:moodiary/router/app_routes.dart';
 import 'package:moodiary/utils/auth_util.dart';
 
@@ -18,10 +20,22 @@ class LockLogic extends GetxController with GetSingleTickerProviderStateMixin {
 
   @override
   void onReady() async {
+    await _loadPassword();
     if (state.supportBiometrics && state.lockType != 'pause') {
       if (await AuthUtil.check()) checked();
     }
     super.onReady();
+  }
+
+  Future<void> _loadPassword() async {
+    // 将旧版本 SharedPreferences 中的明文密码自动迁移到 SecureStorage
+    final oldPassword = PrefUtil.getValue<String>('password');
+    if (oldPassword != null && oldPassword.isNotEmpty) {
+      await SecureStorageUtil.setValue('lockPassword', oldPassword);
+      await PrefUtil.removeValue('password');
+    }
+    state.realPassword.value =
+        await SecureStorageUtil.getValue('lockPassword') ?? '';
   }
 
   @override

@@ -8,6 +8,7 @@ import 'package:moodiary/common/models/sync/sync.dart';
 import 'package:moodiary/common/values/sync_status.dart';
 import 'package:moodiary/common/values/webdav.dart';
 import 'package:moodiary/services/sync/sync.dart';
+import 'package:moodiary/utils/file_util.dart';
 import 'package:moodiary/utils/log_util.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
 
@@ -168,9 +169,7 @@ class WebdavSyncServiceImpl implements SyncService {
         ),
         _deleteFiles(
           diary.videoName
-              .map(
-                (videoName) => 'thumbnail-${videoName.substring(6, 42)}.jpeg',
-              )
+              .map<String>(FileUtil.videoNameToThumbnailName)
               .toList(),
           '${WebDavOptions.videoPath}/${diary.id}',
           'thumbnail',

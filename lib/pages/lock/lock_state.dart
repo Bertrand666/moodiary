@@ -16,7 +16,7 @@ class LockState {
 
   LockState() {
     password = ''.obs;
-    realPassword = PrefUtil.getValue<String>('password')!.obs;
+    realPassword = ''.obs;
     lockType = Get.arguments;
 
     ///Initialize variables

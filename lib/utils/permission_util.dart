@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:permission_handler/permission_handler.dart';
 
 import 'notice_util.dart';
@@ -7,9 +5,6 @@ import 'notice_util.dart';
 class PermissionUtil {
   //权限申请
   static Future<bool> checkPermission(Permission permission) async {
-    if (Platform.isMacOS) {
-      return true;
-    }
     //检查当前权限
     final status = await permission.status;
     //如果还没有授权或者拒绝过

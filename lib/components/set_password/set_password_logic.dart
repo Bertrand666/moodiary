@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/pages/home/setting/setting_logic.dart';
 import 'package:moodiary/persistence/pref.dart';
+import 'package:moodiary/persistence/secure_storage.dart';
 import 'package:moodiary/utils/notice_util.dart';
 
 import 'set_password_state.dart';
@@ -84,8 +85,8 @@ class SetPasswordLogic extends GetxController
   Future<void> setPassword(BuildContext context) async {
     //lock标记为true说明开启了密码
     await PrefUtil.setValue<bool>('lock', true);
-    //设置密码字段
-    await PrefUtil.setValue<String>('password', state.password);
+    //设置密码字段（存储在 SecureStorage，不写入 SharedPreferences）
+    await SecureStorageUtil.setValue('lockPassword', state.password);
     settingLogic.state.lock = true;
     settingLogic.update(['Lock']);
     toast.success(message: '设置成功');

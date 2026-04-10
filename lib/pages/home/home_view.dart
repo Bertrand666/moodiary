@@ -1,4 +1,3 @@
-import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_adaptive_scaffold/flutter_adaptive_scaffold.dart';
 import 'package:get/get.dart';
@@ -35,11 +34,7 @@ class HomePage extends StatelessWidget {
                 Breakpoints.mediumAndUp: SlotLayout.from(
                   key: const ValueKey('navigation medium'),
                   builder: (_) {
-                    return GestureDetector(
-                      onPanStart: (details) {
-                        appWindow.startDragging();
-                      },
-                      child: Obx(() {
+                    return Obx(() {
                         return Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           color: context.theme.colorScheme.surfaceContainer,
@@ -127,8 +122,7 @@ class HomePage extends StatelessWidget {
                             onDestinationSelected: logic.changeNavigator,
                           ),
                         );
-                      }),
-                    );
+                      });
                   },
                 ),
               },

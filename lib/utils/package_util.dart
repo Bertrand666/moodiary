@@ -17,15 +17,6 @@ class PackageUtil {
     if (Platform.isIOS) {
       return await deviceInfoPlugin.iosInfo;
     }
-    if (Platform.isMacOS) {
-      return await deviceInfoPlugin.macOsInfo;
-    }
-    if (Platform.isWindows) {
-      return await deviceInfoPlugin.windowsInfo;
-    }
-    if (Platform.isLinux) {
-      return await deviceInfoPlugin.linuxInfo;
-    }
     return await deviceInfoPlugin.deviceInfo;
   }
 }

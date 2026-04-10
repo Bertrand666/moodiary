@@ -52,5 +52,11 @@ class MergeUtil {
         'fonts': allFont,
       });
     }
+
+    /// domain 字段持久化回填（一次性，与版本无关）
+    if (PrefUtil.getValue<bool>('domainFieldMigrated') != true) {
+      await IsarUtil.migrateDomainField();
+      await PrefUtil.setValue<bool>('domainFieldMigrated', true);
+    }
   }
 }

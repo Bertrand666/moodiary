@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dartx/dartx.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart';
@@ -231,8 +229,6 @@ class ThemeUtil {
           font.fontWghtAxisMap.cast<String, double>(),
         );
       }
-    } else if (Platform.isWindows) {
-      fontFamily = 'Microsoft Yahei UI';
     }
 
     final lightTextTheme = buildTextTheme(lightColorScheme);
