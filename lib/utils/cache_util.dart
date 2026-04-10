@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:moodiary/persistence/hive.dart';
 import 'package:moodiary/persistence/pref.dart';
 import 'package:moodiary/utils/file_util.dart';
@@ -55,9 +56,9 @@ class ImageCacheUtil {
 
   factory ImageCacheUtil() => _instance;
 
-  late final _imageCacheBox = HiveUtil().imageCacheBox;
+  late final _imageCacheBox = Get.find<HiveUtil>().imageCacheBox;
 
-  late final _imageAspectBox = HiveUtil().imageAspectBox;
+  late final _imageAspectBox = Get.find<HiveUtil>().imageAspectBox;
 
   Future<void> close() async {
     await _imageCacheBox.close();

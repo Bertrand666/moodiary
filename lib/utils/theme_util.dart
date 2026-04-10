@@ -1,4 +1,4 @@
-﻿import 'package:dartx/dartx.dart';
+import 'package:dartx/dartx.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -16,11 +16,9 @@ import 'package:moodiary/utils/log_util.dart';
 import 'package:moodiary/common/values/pref_keys.dart';
 
 class ThemeUtil {
-  ThemeUtil._();
-
-  static final ThemeUtil instance = ThemeUtil._();
-
-  factory ThemeUtil() => instance;
+  // 通过 GetX 注入，ThemeUtil() 返回已注册的实例
+  factory ThemeUtil() => Get.find<ThemeUtil>();
+  ThemeUtil.create();
 
   // 亮色模式的主题缓存
   ThemeData? _lightTheme;

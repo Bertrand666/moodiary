@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:io';
 
 import 'package:get/get.dart';
@@ -101,7 +101,7 @@ class LaboratoryLogic extends GetxController {
 
   bool generateFTSAndKeyword() {
     try {
-      IsarUtil.mergeToV2_7_4(FileUtil.getRealPath('database', ''));
+      Get.find<IsarUtil>().mergeToV2_7_4(FileUtil.getRealPath('database', ''));
       return true;
     } catch (e) {
       return false;

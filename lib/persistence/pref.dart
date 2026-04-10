@@ -1,4 +1,5 @@
-﻿import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import 'package:moodiary/common/values/colors.dart';
 import 'package:moodiary/common/values/view_mode.dart';
 import 'package:moodiary/merge/merge.dart';
@@ -10,7 +11,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:moodiary/common/values/pref_keys.dart';
 
 class PrefUtil {
-  static late final SharedPreferencesWithCache _prefs;
+  late final SharedPreferencesWithCache _prefs;
+
+  // ---- 门面：让所有调用者的 PrefUtil.xxx 静态调用继续工作 ----
+  static PrefUtil get _i => Get.find<PrefUtil>();
 
   static const allowList = {
     //应用版本
@@ -100,7 +104,13 @@ class PrefUtil {
     PrefKeys.syncEncryption,
   };
 
-  static Future<void> initPref() async {
+  // ---- 静态门面方法（保持向后兼容） ----
+  static Future<void> setValue<T>(String key, T value) => _i._setValue(key, value);
+  static T? getValue<T>(String key) => _i._getValue(key);
+  static Future<void> removeValue(String key) => _i._removeValue(key);
+
+  // ---- 实例方法（真正的实现） ----
+  Future<void> initPref() async {
     _prefs = await SharedPreferencesWithCache.create(
       cacheOptions: const SharedPreferencesWithCacheOptions(
         allowList: allowList,
@@ -121,14 +131,14 @@ class PrefUtil {
         appVersion == null ||
         appVersion != currentVersion) {
       await _prefs.setString(PrefKeys.appVersion, currentVersion);
-      await setDefaultValues();
+      await _setDefaultValues();
       //初始化所需目录
       await FileUtil.initCreateDir();
     }
   }
 
   // 设置默认值的方法
-  static Future<void> setDefaultValues() async {
+  Future<void> _setDefaultValues() async {
     await _prefs.setBool(PrefKeys.autoSync, _prefs.getBool(PrefKeys.autoSync) ?? false);
 
     /// 支持相关，每次都重新获取
@@ -217,7 +227,7 @@ class PrefUtil {
     );
   }
 
-  static Future<void> setValue<T>(String key, T value) async {
+  Future<void> _setValue<T>(String key, T value) async {
     if (T == int) {
       await _prefs.setInt(key, value as int);
     } else if (T == bool) {
@@ -233,7 +243,7 @@ class PrefUtil {
     }
   }
 
-  static T? getValue<T>(String key) {
+  T? _getValue<T>(String key) {
     if (T == int) {
       return _prefs.getInt(key) as T?;
     } else if (T == bool) {
@@ -249,7 +259,7 @@ class PrefUtil {
     }
   }
 
-  static Future<void> removeValue(String key) async {
+  Future<void> _removeValue(String key) async {
     await _prefs.remove(key);
   }
 }

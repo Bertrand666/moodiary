@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
@@ -23,6 +23,7 @@ import 'package:moodiary/router/app_pages.dart';
 import 'package:moodiary/router/app_routes.dart';
 import 'package:moodiary/src/rust/frb_generated.dart';
 import 'package:moodiary/utils/log_util.dart';
+import 'package:moodiary/utils/file_util.dart';
 import 'package:moodiary/utils/media_util.dart';
 import 'package:moodiary/utils/theme_util.dart';
 import 'package:moodiary/utils/webdav_util.dart';
@@ -30,13 +31,40 @@ import 'package:moodiary/common/values/pref_keys.dart';
 
 Future<void> _initSystem() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await PrefUtil.initPref();
-  await IsarUtil.initIsar();
-  await HiveUtil().init();
+
+  // 第 1 层：PrefUtil（无依赖，所有其他服务读取配置）
+  final prefUtil = PrefUtil();
+  await prefUtil.initPref();
+  Get.put<PrefUtil>(prefUtil, permanent: true);
+
+  // 第 2 层：FileUtil（依赖 PrefUtil 获取路径）
+  final fileUtil = FileUtil();
+  Get.put<FileUtil>(fileUtil, permanent: true);
+
+  // 第 3 层：IsarUtil（依赖 FileUtil 获取数据库目录）
+  final isarUtil = IsarUtil();
+  await isarUtil.initIsar();
+  Get.put<IsarUtil>(isarUtil, permanent: true);
+
+  // 第 3 层（并行）：HiveUtil（依赖 FileUtil 获取 Hive 目录）
+  final hiveUtil = HiveUtil();
+  await hiveUtil.init();
+  Get.put<HiveUtil>(hiveUtil, permanent: true);
+
+  // 第 4 层：RustLib（独立，无依赖）
   unawaited(RustLib.init());
   unawaited(_platFormOption());
-  unawaited(WebDavUtil().initWebDav());
-  await ThemeUtil().buildTheme();
+
+  // 第 4 层：WebDavUtil（依赖 PrefUtil + SecureStorage）
+  final webDavUtil = WebDavUtil.create();
+  unawaited(webDavUtil.initWebDav());
+  Get.put<WebDavUtil>(webDavUtil, permanent: true);
+
+  // 第 4 层：ThemeUtil（依赖 PrefUtil + IsarUtil）
+  final themeUtil = ThemeUtil.create();
+  await themeUtil.buildTheme();
+  Get.put<ThemeUtil>(themeUtil, permanent: true);
+
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(

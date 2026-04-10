@@ -1,9 +1,10 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:get/get.dart';
 import 'package:isar/isar.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:moodiary/common/models/isar/category.dart';
@@ -27,535 +28,75 @@ import 'package:uuid/uuid.dart';
 import 'package:moodiary/common/values/pref_keys.dart';
 
 class IsarUtil {
-  static late final Isar _isar;
+  late final Isar _isar;
 
   static final _schemas = [DiarySchema, CategorySchema, FontSchema];
 
-  static Future<void> initIsar() async {
+  // ---- 门面 ----
+  static IsarUtil get _i => Get.find<IsarUtil>();
+
+  Future<void> initIsar() async {
     _isar = await Isar.openAsync(
       schemas: _schemas,
       directory: FileUtil.getRealPath('database', ''),
     );
   }
 
-  static Future<void> dataMigration(String path) async {
-    final oldIsar = await Isar.openAsync(
-      schemas: _schemas,
-      directory: path,
-      name: 'old',
-    );
-    final List<Diary> oldDiaryList = await oldIsar.diarys
-        .where()
-        .findAllAsync();
-    final List<Category> oldCategoryList = await oldIsar.categorys
-        .where()
-        .findAllAsync();
-    final List<Font> oldFontList = await oldIsar.fonts.where().findAllAsync();
+  // ---- 静态门面方法（保持向后兼容） ----
+  static Future<void> dataMigration(String path) => _i._dataMigration(path);
+  static Future<void> clearIsar() => _i._clearIsar();
+  static Map<String, dynamic> getSize() => _i._getSize();
+  static Future<void> exportIsar(String dir, String path, String fileName) =>
+      _i._exportIsar(dir, path, fileName);
+  static Future<void> insertADiary(Diary diary) => _i._insertADiary(diary);
+  static Future<List<Diary>> getDiaryByMonth(int year, int month) =>
+      _i._getDiaryByMonth(year, month);
+  static Future<Diary?> getDiaryByID(int isarId) => _i._getDiaryByID(isarId);
+  static Future<List<Diary>> getDiariesByDateRange(DateTime start, DateTime end, {bool all = true}) =>
+      _i._getDiariesByDateRange(start, end, all: all);
+  static Future<List<Diary>> getAllDiaries() => _i._getAllDiaries();
+  static Future<List<Diary>> getAllDiariesSorted() => _i._getAllDiariesSorted();
+  static Future<List<List<String>>> getWeatherByDateRange(DateTime start, DateTime end, {DiaryDomain? domain}) =>
+      _i._getWeatherByDateRange(start, end, domain: domain);
+  static Future<List<double>> getMoodByDateRange(DateTime start, DateTime end, {DiaryDomain? domain}) =>
+      _i._getMoodByDateRange(start, end, domain: domain);
+  static Future<bool> deleteADiary(int isarId) => _i._deleteADiary(isarId);
+  static Future<List<Diary>> getRecycleBinDiaries() => _i._getRecycleBinDiaries();
+  static Future<void> updateADiary({Diary? oldDiary, required Diary newDiary}) =>
+      _i._updateADiary(oldDiary: oldDiary, newDiary: newDiary);
+  static Future<List<Diary>> searchDiaries({required List<String> queryList, DiaryDomain? domain}) =>
+      _i._searchDiaries(queryList: queryList, domain: domain);
+  static Future<List<Diary>> searchDiariesByTag(String value, {DiaryDomain? domain}) =>
+      _i._searchDiariesByTag(value, domain: domain);
+  static Future<int> countShowDiary() => _i._countShowDiary();
+  static int countAllDiary() => _i._countAllDiary();
+  static int countCategories({DiaryDomain? domain}) => _i._countCategories(domain: domain);
+  static Category? getCategoryName(String id) => _i._getCategoryName(id);
+  static Future<bool> insertACategory(Category category, {DiaryDomain domain = DiaryDomain.normal}) =>
+      _i._insertACategory(category, domain: domain);
+  static Future<bool> updateACategory(Category category) => _i._updateACategory(category);
+  static Future<bool> deleteACategory(String id) => _i._deleteACategory(id);
+  static Future<List<String>> getContentList({DiaryDomain? domain}) =>
+      _i._getContentList(domain: domain);
+  static List<Category> getAllCategory({DiaryDomain domain = DiaryDomain.normal}) =>
+      _i._getAllCategory(domain: domain);
+  static Future<List<Category>> getAllCategoryAsync({DiaryDomain domain = DiaryDomain.normal}) =>
+      _i._getAllCategoryAsync(domain: domain);
+  static Future<List<Diary>> getDiaryByCategory(String? categoryId, int offset, int limit, {DiaryDomain domain = DiaryDomain.normal}) =>
+      _i._getDiaryByCategory(categoryId, offset, limit, domain: domain);
+  static Future<List<Diary>> getDiaryByDay(DateTime time) => _i._getDiaryByDay(time);
+  static Future<List<Diary>> getDiary(int offset, int limit) => _i._getDiary(offset, limit);
+  static Future<void> migrateDomainField() => _i._migrateDomainField();
+  static Future<List<DiaryMapItem>> getAllMapItem() => _i._getAllMapItem();
+  static Future<void> addSyncRecord(SyncRecord record) => _i._addSyncRecord(record);
+  static Future<List<SyncRecord>> getSyncRecords() => _i._getSyncRecords();
+  static Future<void> deleteSyncRecord(int id) => _i._deleteSyncRecord(id);
+  static Future<List<Font>> getAllFonts() => _i._getAllFonts();
+  static Future<void> insertAFont(Font font) => _i._insertAFont(font);
+  static Future<Font?> getFontByFontFamily(String fontFamily) => _i._getFontByFontFamily(fontFamily);
+  static Future<bool> deleteFont(int id) => _i._deleteFont(id);
 
-    await _isar.writeAsync((isar) {
-      isar.clear();
-      isar.diarys.putAll(oldDiaryList);
-      isar.categorys.putAll(oldCategoryList);
-      isar.fonts.putAll(oldFontList);
-    });
-    oldIsar.close(deleteFromDisk: true);
-  }
-
-  static bool _isMemoirDiary(Diary diary) {
-    return DiaryTemplateConst.hasMemoirTag(diary.tags);
-  }
-
-  static bool _matchDiaryDomain(Diary diary, DiaryDomain? domain) {
-    if (domain == null) return true;
-    final isMemoir = _isMemoirDiary(diary);
-    return domain == DiaryDomain.memoir ? isMemoir : !isMemoir;
-  }
-
-  static Diary _hydrateDiaryDomain(Diary diary) {
-    // domain 已持久化，仅对旧数据再根据 tags 修正（domain 字段为默认就进行 tag 推断）
-    if (diary.domain == DiaryDomain.normal.value) {
-      final inferredIsMemoir = _isMemoirDiary(diary);
-      if (inferredIsMemoir) {
-        diary.domain = DiaryDomain.memoir.value;
-      }
-    }
-    return diary;
-  }
-
-  static bool _isMemoirCategory(Category category) {
-    return category.id.startsWith('memoir_') ||
-        category.domain == DiaryDomain.memoir.value;
-  }
-
-  static bool _matchCategoryDomain(Category category, DiaryDomain domain) {
-    final isMemoir = _isMemoirCategory(category);
-    return domain == DiaryDomain.memoir ? isMemoir : !isMemoir;
-  }
-
-  static Category _hydrateCategoryDomain(Category category) {
-    // domain 已持久化；仅对旧数据再根据 id 前缀修正
-    if (category.domain == DiaryDomain.normal.value &&
-        category.id.startsWith('memoir_')) {
-      category.domain = DiaryDomain.memoir.value;
-    }
-    return category;
-  }
-
-  //清空数据
-  static Future<void> clearIsar() async {
-    await _isar.writeAsync((isar) {
-      isar.clear();
-    });
-  }
-
-  static Map<String, dynamic> getSize() {
-    return FileUtil.bytesToUnits(_isar.diarys.getSize(includeIndexes: true));
-  }
-
-  //导出数据
-  static Future<void> exportIsar(
-    String dir,
-    String path,
-    String fileName,
-  ) async {
-    final isar = Isar.open(schemas: _schemas, directory: join(dir, 'database'));
-    try {
-      isar.copyToFile(join(path, fileName));
-    } finally {
-      isar.close();
-    }
-  }
-
-  //插入一条日记
-  static Future<void> insertADiary(Diary diary) async {
-    _normalizeDiaryDomainTag(diary);
-    await _isar.writeAsync((isar) {
-      isar.diarys.put(diary);
-    });
-  }
-
-  //根据月份获取日记
-  static Future<List<Diary>> getDiaryByMonth(int year, int month) async {
-    final diaries = await _isar.diarys
-        .where()
-        .showEqualTo(true)
-        .yMEqualTo('${year.toString()}/${month.toString()}')
-        .sortByTimeDesc()
-        .findAllAsync();
-    return diaries.map(_hydrateDiaryDomain).toList();
-  }
-
-  //根据id获取日记
-  static Future<Diary?> getDiaryByID(int isarId) async {
-    final diary = await _isar.diarys.getAsync(isarId);
-    if (diary == null) return null;
-    return _hydrateDiaryDomain(diary);
-  }
-
-  //根据日期范围获取日记
-  static Future<List<Diary>> getDiariesByDateRange(
-    DateTime start,
-    DateTime end, {
-    bool all = true,
-  }) async {
-    final diaries = await _isar.diarys
-        .where()
-        .timeBetween(start, end)
-        .showEqualTo(all)
-        .findAllAsync();
-    return diaries.map(_hydrateDiaryDomain).toList();
-  }
-
-  //获取全部日记
-  static Future<List<Diary>> getAllDiaries() async {
-    final diaries = await _isar.diarys.where().findAllAsync();
-    return diaries.map(_hydrateDiaryDomain).toList();
-  }
-
-  /// 获取全部日记
-  static Future<List<Diary>> getAllDiariesSorted() async {
-    final diaries = await _isar.diarys
-        .where()
-        .showEqualTo(true)
-        .sortByTimeDesc()
-        .findAllAsync();
-    return diaries.map(_hydrateDiaryDomain).toList();
-  }
-
-  //获取指定范围内的天气
-  static Future<List<List<String>>> getWeatherByDateRange(
-    DateTime start,
-    DateTime end, {
-    DiaryDomain? domain,
-  }) async {
-    final diaries = await _isar.diarys
-        .where()
-        .showEqualTo(true)
-        .timeBetween(start, end)
-        .sortByTime()
-        .findAllAsync();
-
-    final weatherByDay = <String, List<String>>{};
-    for (final diary in diaries) {
-      if (!_matchDiaryDomain(diary, domain)) continue;
-      weatherByDay.putIfAbsent(diary.yMd, () => diary.weather);
-    }
-    return weatherByDay.values.toList();
-  }
-
-  //获取指定范围的心情指数
-  static Future<List<double>> getMoodByDateRange(
-    DateTime start,
-    DateTime end, {
-    DiaryDomain? domain,
-  }) async {
-    final diaries = await _isar.diarys
-        .where()
-        .showEqualTo(true)
-        .timeBetween(start, end)
-        .sortByTime()
-        .findAllAsync();
-
-    final moodByDay = <String, double>{};
-    for (final diary in diaries) {
-      if (!_matchDiaryDomain(diary, domain)) continue;
-      moodByDay.putIfAbsent(diary.yMd, () => diary.mood);
-    }
-    return moodByDay.values.toList();
-  }
-
-  //删除某篇日记
-  static Future<bool> deleteADiary(int isarId) async {
-    return await _isar.writeAsync((isar) {
-      return isar.diarys.delete(isarId);
-    });
-  }
-
-  //回收站日记
-  static Future<List<Diary>> getRecycleBinDiaries() async {
-    final diaries = await _isar.diarys
-        .where()
-        .showEqualTo(false)
-        .sortByTimeDesc()
-        .findAllAsync();
-    return diaries.map(_hydrateDiaryDomain).toList();
-  }
-
-  //更新日记
-  static Future<void> updateADiary({
-    Diary? oldDiary,
-    required Diary newDiary,
-  }) async {
-    // 如果没有旧日记，说明是新增日记
-    _normalizeDiaryDomainTag(newDiary);
-    newDiary.lastModified = DateTime.now();
-    await _isar.writeAsync((isar) {
-      isar.diarys.put(newDiary);
-    });
-    // 更新日记, 旧日记不为空，说明是更新日记, 需要清理旧日记的媒体文件
-    if (oldDiary != null) {
-      // 清理本地媒体文件
-      await FileUtil.cleanUpOldMediaFiles(oldDiary, newDiary);
-      if (WebDavUtil().hasOption &&
-          PrefUtil.getValue<bool>(PrefKeys.autoSyncAfterChange) == true) {
-        unawaited(
-          WebDavUtil().updateSingleDiary(
-            oldDiary: oldDiary,
-            newDiary: newDiary,
-          ),
-        );
-      }
-    } else {
-      if (WebDavUtil().hasOption &&
-          PrefUtil.getValue<bool>(PrefKeys.autoSyncAfterChange) == true) {
-        unawaited(WebDavUtil().uploadSingleDiary(newDiary));
-      }
-    }
-  }
-
-  static void _normalizeDiaryDomainTag(Diary diary) {
-    final hasMemoirTag = DiaryTemplateConst.hasMemoirTag(diary.tags);
-    final domain = hasMemoirTag
-        ? DiaryDomain.memoir
-        : DiaryDomain.fromValue(diary.domain);
-    diary.domain = domain.value;
-    if (domain == DiaryDomain.memoir) {
-      diary.tags.removeWhere(
-        (tag) => tag == DiaryTemplateConst.legacyMemoirTag,
-      );
-      if (!diary.tags.contains(DiaryTemplateConst.memoirTag)) {
-        diary.tags.add(DiaryTemplateConst.memoirTag);
-      }
-    } else {
-      diary.tags.removeWhere(
-        (tag) =>
-            tag == DiaryTemplateConst.memoirTag ||
-            tag == DiaryTemplateConst.legacyMemoirTag,
-      );
-    }
-  }
-
-  static Future<List<Diary>> searchDiaries({
-    required List<String> queryList,
-    DiaryDomain? domain,
-  }) async {
-    if (queryList.isEmpty) return [];
-
-    // 收集所有匹配关键词的内容结果
-    final HashSet<Diary> results = HashSet(
-      equals: (a, b) {
-        return a.isarId == b.isarId;
-      },
-      hashCode: (e) {
-        return e.isarId;
-      },
-    );
-
-    for (final word in queryList) {
-      final matches = await _isar.diarys
-          .where()
-          .showEqualTo(true)
-          .tokenizerElementMatches(word, caseSensitive: false)
-          .or()
-          .titleContains(word, caseSensitive: false)
-          .findAllAsync();
-      results.addAll(matches);
-    }
-
-    // 按时间降序排序
-    final List<Diary> sortedResults =
-        results
-            .where((diary) => _matchDiaryDomain(diary, domain))
-            .map(_hydrateDiaryDomain)
-            .toList()
-          ..sort((a, b) => b.time.compareTo(a.time));
-
-    return sortedResults;
-  }
-
-  static Future<List<Diary>> searchDiariesByTag(
-    String value, {
-    DiaryDomain? domain,
-  }) async {
-    final diaries = await _isar.diarys
-        .where()
-        .showEqualTo(true)
-        .tagsElementContains(value)
-        .findAllAsync();
-    return diaries
-        .where((diary) => _matchDiaryDomain(diary, domain))
-        .map(_hydrateDiaryDomain)
-        .toList();
-  }
-
-  //获取不在回收站的日记总数
-  static Future<int> countShowDiary() async {
-    return await _isar.diarys.where().showEqualTo(true).countAsync();
-  }
-
-  static int countAllDiary() {
-    return _isar.diarys.count();
-  }
-
-  //获取分类总数
-  static int countCategories({DiaryDomain? domain}) {
-    if (domain == null) return _isar.categorys.count();
-    return _isar.categorys
-        .where()
-        .findAll()
-        .where((category) => _matchCategoryDomain(category, domain))
-        .length;
-  }
-
-  //获取分类名称
-  static Category? getCategoryName(String id) {
-    return _isar.categorys.get(id);
-  }
-
-  // 插入一个分类
-  static Future<bool> insertACategory(
-    Category category, {
-    DiaryDomain domain = DiaryDomain.normal,
-  }) async {
-    return await _isar.writeAsync((isar) {
-      // 查询数据库中是否有同名但 ID 不同的分类
-      Category? existingCategory;
-      for (final element in isar.categorys.where().findAll()) {
-        if (element.categoryName == category.categoryName &&
-            _matchCategoryDomain(element, domain)) {
-          existingCategory = element;
-          break;
-        }
-      }
-      if (existingCategory != null) {
-        // 如果同名但 ID 不同，则修改分类名称并添加随机后缀
-        category.categoryName =
-            '${category.categoryName}_${const Uuid().v4().substring(0, 4)}';
-      }
-      // 为分类分配新的唯一 ID
-      category.id = domain == DiaryDomain.memoir
-          ? 'memoir_${const Uuid().v7()}'
-          : const Uuid().v7();
-      category.domain = domain.value;
-      // 将分类保存到数据库中
-      isar.categorys.put(category);
-      // 返回是否是新名称（true 表示没有冲突）
-      return existingCategory == null;
-    });
-  }
-
-  // 更新一个分类
-  static Future<bool> updateACategory(Category category) async {
-    return await _isar.writeAsync((isar) {
-      final domain = _isMemoirCategory(category)
-          ? DiaryDomain.memoir
-          : DiaryDomain.normal;
-      category.domain = domain.value;
-      String? oldCategoryId;
-      if (domain == DiaryDomain.memoir && !category.id.startsWith('memoir_')) {
-        oldCategoryId = category.id;
-        category.id = 'memoir_${category.id}';
-      }
-      // 查询数据库中是否有同名但 ID 不同的分类
-      Category? existingCategory;
-      for (final element in isar.categorys.where().findAll()) {
-        if (element.id != category.id &&
-            element.categoryName == category.categoryName &&
-            _matchCategoryDomain(element, domain)) {
-          existingCategory = element;
-          break;
-        }
-      }
-      if (existingCategory != null && existingCategory.id != category.id) {
-        // 如果同名但 ID 不同，则修改分类名称并添加随机后缀
-        category.categoryName =
-            '${category.categoryName}_${const Uuid().v4().substring(0, 4)}';
-      }
-      // 将分类保存到数据库中
-      isar.categorys.put(category);
-      if (oldCategoryId != null) {
-        final diaries = isar.diarys
-            .where()
-            .categoryIdEqualTo(oldCategoryId)
-            .findAll();
-        for (final diary in diaries) {
-          diary.categoryId = category.id;
-          _normalizeDiaryDomainTag(diary);
-        }
-        if (diaries.isNotEmpty) {
-          isar.diarys.putAll(diaries);
-        }
-        isar.categorys.delete(oldCategoryId);
-      }
-      // 返回是否是新名称（true 表示没有冲突）
-      return existingCategory == null;
-    });
-  }
-
-  static Future<bool> deleteACategory(String id) async {
-    return await _isar.writeAsync((isar) {
-      if (isar.diarys.where().categoryIdEqualTo(id).isEmpty()) {
-        return isar.categorys.delete(id);
-      } else {
-        return false;
-      }
-    });
-  }
-
-  // 获取所有日记内容
-  static Future<List<String>> getContentList({DiaryDomain? domain}) async {
-    final diaries = await _isar.diarys.where().showEqualTo(true).findAllAsync();
-    return diaries
-        .where((diary) => _matchDiaryDomain(diary, domain))
-        .map((diary) => diary.contentText)
-        .toList();
-  }
-
-  //获取所有分类，这是个同步方法，用于第一次初始化，要怪就怪 TabBar
-  static List<Category> getAllCategory({
-    DiaryDomain domain = DiaryDomain.normal,
-  }) {
-    // 利用 domain 索引在 DB 层过滤
-    final list = _isar.categorys
-        .where()
-        .domainEqualTo(domain.value)
-        .findAll()
-        .map(_hydrateCategoryDomain)
-        .toList();
-    list.sort((a, b) => a.id.compareTo(b.id));
-    return list;
-  }
-
-  static Future<List<Category>> getAllCategoryAsync({
-    DiaryDomain domain = DiaryDomain.normal,
-  }) async {
-    // 利用 domain 索引在 DB 层过滤
-    final list = await _isar.categorys
-        .where()
-        .domainEqualTo(domain.value)
-        .findAllAsync();
-    final result = list.map(_hydrateCategoryDomain).toList();
-    result.sort((a, b) => a.id.compareTo(b.id));
-    return result;
-  }
-
-  //获取对应分类的日记,如果为空，返回全部日记
-  static Future<List<Diary>> getDiaryByCategory(
-    String? categoryId,
-    int offset,
-    int limit, {
-    DiaryDomain domain = DiaryDomain.normal,
-  }) async {
-    // 当指定分类时，利用 categoryId 索引在 DB 层过滤，避免全量加载
-    final List<Diary> raw;
-    if (categoryId != null) {
-      raw = await _isar.diarys
-          .where()
-          .categoryIdEqualTo(categoryId)
-          .findAllAsync();
-    } else {
-      raw = await _isar.diarys.where().showEqualTo(true).findAllAsync();
-    }
-
-    final filtered =
-        raw
-            .where((diary) {
-              if (categoryId != null && !diary.show) return false;
-              return _matchDiaryDomain(diary, domain);
-            })
-            .map(_hydrateDiaryDomain)
-            .toList()
-          ..sort((a, b) => b.time.compareTo(a.time));
-
-    final safeOffset = offset.clamp(0, filtered.length);
-    final end = (safeOffset + limit).clamp(0, filtered.length);
-    return filtered.sublist(safeOffset, end);
-  }
-
-  //获取某一天的日记
-  static Future<List<Diary>> getDiaryByDay(DateTime time) async {
-    final diaries = await _isar.diarys
-        .where()
-        .showEqualTo(true)
-        .yMdEqualTo(
-          '${time.year.toString()}/${time.month.toString()}/${time.day.toString()}',
-        )
-        .sortByTimeDesc()
-        .findAllAsync();
-    return diaries.map(_hydrateDiaryDomain).toList();
-  }
-
-  static Future<List<Diary>> getDiary(int offset, int limit) async {
-    final diaries = await _isar.diarys.where().findAllAsync(
-      offset: offset,
-      limit: limit,
-    );
-    return diaries.map(_hydrateDiaryDomain).toList();
-  }
-
-  /// 2.4.8 版本变更
-  /// 新增字段
-  /// 1.position 用于记录位置
+  // ---- 传入 compute() 的方法必须保持 static ----
   static void mergeToV2_4_8(String dir) {
     final isar = Isar.open(schemas: _schemas, directory: dir);
     final countDiary = isar.diarys.where().count();
@@ -568,13 +109,6 @@ class IsarUtil {
     isar.close();
   }
 
-  /// 2.6.0 版本变更
-  /// 新增字段
-  /// 1.type 类型字段，用于表示是纯文本还是富文本
-  /// 2.lastModified 最后修改时间
-  /// 变更
-  /// 1.将时间字段修改为最后修改时间
-  /// 2.将类型字段修改为富文本
   static void mergeToV2_6_0(String dir) {
     final isar = Isar.open(schemas: _schemas, directory: dir);
     final countDiary = isar.diarys.where().count();
@@ -622,40 +156,6 @@ class IsarUtil {
     isar.close();
   }
 
-  /// 2.7.4 版本变更
-  /// 新增字段
-  /// 1. keywords 关键词
-  /// 2. tokenizer 分词器
-  static Future<void> mergeToV2_7_4(String dir) async {
-    final countDiary = _isar.diarys.where().count();
-    for (var i = 0; i < countDiary; i += 50) {
-      final diaries = await _isar.diarys.where().findAllAsync(
-        offset: i,
-        limit: 50,
-      );
-      for (final diary in diaries) {
-        final newContent = diary.contentText.removeLineBreaks();
-        diary.tokenizer = await JiebaRs.cutAll(text: newContent);
-        final keywords = await JiebaRs.extractKeywordsTfidf(
-          text: newContent,
-          topK: BigInt.from(5),
-          allowedPos: [],
-        );
-        final sortByWeight = keywords
-          ..sort((a, b) => b.weight.compareTo(a.weight));
-        final sortedKeywords = sortByWeight.map((e) => e.keyword).toList();
-        diary.keywords = sortedKeywords;
-        diary.contentText = newContent;
-        await _isar.writeAsync((isar) {
-          isar.diarys.put(diary);
-        });
-      }
-    }
-  }
-
-  /// 2.6.3 修复
-  /// 修复之前webdav同步时，没有同步分类的问题
-  /// 遍历所有日记，如果本地没有日记的分类，就创建一个分类，名称为分类名
   static void fixV2_6_3(String dir) {
     final isar = Isar.open(schemas: _schemas, directory: dir);
     final countDiary = isar.diarys.where().count();
@@ -663,7 +163,6 @@ class IsarUtil {
       final diaries = isar.diarys.where().findAll(offset: i, limit: 50);
       isar.write((isar) {
         for (final diary in diaries) {
-          // 如果日记有分类，但是本地没有这个分类，就创建一个分类，名称为“修复分类+数字”
           final id = diary.categoryId;
           if (id != null && isar.categorys.where().idEqualTo(id).isEmpty()) {
             isar.categorys.put(
@@ -678,36 +177,16 @@ class IsarUtil {
     isar.close();
   }
 
-  /// 为所有现有日记和分类回填 domain 字段（一次性迁移）
-  /// 在 MergeUtil 中通过 SharedPreferences 标志确保只运行一次
-  static Future<void> migrateDomainField() async {
-    final diaryCount = _isar.diarys.where().count();
-    for (var i = 0; i < diaryCount; i += 50) {
-      final batch = await _isar.diarys.where().findAllAsync(
-        offset: i,
-        limit: 50,
-      );
-      await _isar.writeAsync((isar) {
-        for (final diary in batch) {
-          final isMemoir = _isMemoirDiary(diary);
-          diary.domain = (isMemoir ? DiaryDomain.memoir : DiaryDomain.normal).value;
-          isar.diarys.put(diary);
-        }
-      });
-    }
-    final categoryCount = _isar.categorys.count();
-    for (var i = 0; i < categoryCount; i += 50) {
-      final batch = _isar.categorys.where().findAll(offset: i, limit: 50);
-      await _isar.writeAsync((isar) {
-        for (final category in batch) {
-          final isMemoir = _isMemoirCategory(category);
-          category.domain = (isMemoir ? DiaryDomain.memoir : DiaryDomain.normal).value;
-          isar.categorys.put(category);
-        }
-      });
-    }
+  static Future<void> mergeToV2_7_3(Map<String, dynamic> parma) async {
+    final isar = Isar.open(schemas: _schemas, directory: parma['database']!);
+
+    await isar.writeAsync((isar) {
+      isar.fonts.clear();
+      isar.fonts.putAll(parma['fonts']);
+    });
   }
 
+  // ---- 静态辅助方法（不依赖实例状态） ----
   static void insertNewImage({
     required String imageName,
     required QuillController quillController,
@@ -753,14 +232,540 @@ class IsarUtil {
     );
   }
 
-  // 获取用于地图显示的对象
-  static Future<List<DiaryMapItem>> getAllMapItem() async {
-    final List<DiaryMapItem> res = [];
+  // ---- 私有辅助方法（域/domain 逻辑） ----
+  bool _isMemoirDiary(Diary diary) {
+    return DiaryTemplateConst.hasMemoirTag(diary.tags);
+  }
 
-    /// 所有的日记
-    /// 要满足以下条件
-    /// 1. 有定位坐标
-    /// 2. show
+  bool _matchDiaryDomain(Diary diary, DiaryDomain? domain) {
+    if (domain == null) return true;
+    final isMemoir = _isMemoirDiary(diary);
+    return domain == DiaryDomain.memoir ? isMemoir : !isMemoir;
+  }
+
+  Diary _hydrateDiaryDomain(Diary diary) {
+    if (diary.domain == DiaryDomain.normal.value) {
+      final inferredIsMemoir = _isMemoirDiary(diary);
+      if (inferredIsMemoir) {
+        diary.domain = DiaryDomain.memoir.value;
+      }
+    }
+    return diary;
+  }
+
+  bool _isMemoirCategory(Category category) {
+    return category.id.startsWith('memoir_') ||
+        category.domain == DiaryDomain.memoir.value;
+  }
+
+  bool _matchCategoryDomain(Category category, DiaryDomain domain) {
+    final isMemoir = _isMemoirCategory(category);
+    return domain == DiaryDomain.memoir ? isMemoir : !isMemoir;
+  }
+
+  Category _hydrateCategoryDomain(Category category) {
+    if (category.domain == DiaryDomain.normal.value &&
+        category.id.startsWith('memoir_')) {
+      category.domain = DiaryDomain.memoir.value;
+    }
+    return category;
+  }
+
+  void _normalizeDiaryDomainTag(Diary diary) {
+    final hasMemoirTag = DiaryTemplateConst.hasMemoirTag(diary.tags);
+    final domain = hasMemoirTag
+        ? DiaryDomain.memoir
+        : DiaryDomain.fromValue(diary.domain);
+    diary.domain = domain.value;
+    if (domain == DiaryDomain.memoir) {
+      diary.tags.removeWhere(
+        (tag) => tag == DiaryTemplateConst.legacyMemoirTag,
+      );
+      if (!diary.tags.contains(DiaryTemplateConst.memoirTag)) {
+        diary.tags.add(DiaryTemplateConst.memoirTag);
+      }
+    } else {
+      diary.tags.removeWhere(
+        (tag) =>
+            tag == DiaryTemplateConst.memoirTag ||
+            tag == DiaryTemplateConst.legacyMemoirTag,
+      );
+    }
+  }
+
+  // ---- 实例方法（真正的实现） ----
+  Future<void> _dataMigration(String path) async {
+    final oldIsar = await Isar.openAsync(
+      schemas: _schemas,
+      directory: path,
+      name: 'old',
+    );
+    final List<Diary> oldDiaryList = await oldIsar.diarys
+        .where()
+        .findAllAsync();
+    final List<Category> oldCategoryList = await oldIsar.categorys
+        .where()
+        .findAllAsync();
+    final List<Font> oldFontList = await oldIsar.fonts.where().findAllAsync();
+
+    await _isar.writeAsync((isar) {
+      isar.clear();
+      isar.diarys.putAll(oldDiaryList);
+      isar.categorys.putAll(oldCategoryList);
+      isar.fonts.putAll(oldFontList);
+    });
+    oldIsar.close(deleteFromDisk: true);
+  }
+
+  Future<void> _clearIsar() async {
+    await _isar.writeAsync((isar) {
+      isar.clear();
+    });
+  }
+
+  Map<String, dynamic> _getSize() {
+    return FileUtil.bytesToUnits(_isar.diarys.getSize(includeIndexes: true));
+  }
+
+  Future<void> _exportIsar(
+    String dir,
+    String path,
+    String fileName,
+  ) async {
+    final isar = Isar.open(schemas: _schemas, directory: join(dir, 'database'));
+    try {
+      isar.copyToFile(join(path, fileName));
+    } finally {
+      isar.close();
+    }
+  }
+
+  Future<void> _insertADiary(Diary diary) async {
+    _normalizeDiaryDomainTag(diary);
+    await _isar.writeAsync((isar) {
+      isar.diarys.put(diary);
+    });
+  }
+
+  Future<List<Diary>> _getDiaryByMonth(int year, int month) async {
+    final diaries = await _isar.diarys
+        .where()
+        .showEqualTo(true)
+        .yMEqualTo('${year.toString()}/${month.toString()}')
+        .sortByTimeDesc()
+        .findAllAsync();
+    return diaries.map(_hydrateDiaryDomain).toList();
+  }
+
+  Future<Diary?> _getDiaryByID(int isarId) async {
+    final diary = await _isar.diarys.getAsync(isarId);
+    if (diary == null) return null;
+    return _hydrateDiaryDomain(diary);
+  }
+
+  Future<List<Diary>> _getDiariesByDateRange(
+    DateTime start,
+    DateTime end, {
+    bool all = true,
+  }) async {
+    final diaries = await _isar.diarys
+        .where()
+        .timeBetween(start, end)
+        .showEqualTo(all)
+        .findAllAsync();
+    return diaries.map(_hydrateDiaryDomain).toList();
+  }
+
+  Future<List<Diary>> _getAllDiaries() async {
+    final diaries = await _isar.diarys.where().findAllAsync();
+    return diaries.map(_hydrateDiaryDomain).toList();
+  }
+
+  Future<List<Diary>> _getAllDiariesSorted() async {
+    final diaries = await _isar.diarys
+        .where()
+        .showEqualTo(true)
+        .sortByTimeDesc()
+        .findAllAsync();
+    return diaries.map(_hydrateDiaryDomain).toList();
+  }
+
+  Future<List<List<String>>> _getWeatherByDateRange(
+    DateTime start,
+    DateTime end, {
+    DiaryDomain? domain,
+  }) async {
+    final diaries = await _isar.diarys
+        .where()
+        .showEqualTo(true)
+        .timeBetween(start, end)
+        .sortByTime()
+        .findAllAsync();
+
+    final weatherByDay = <String, List<String>>{};
+    for (final diary in diaries) {
+      if (!_matchDiaryDomain(diary, domain)) continue;
+      weatherByDay.putIfAbsent(diary.yMd, () => diary.weather);
+    }
+    return weatherByDay.values.toList();
+  }
+
+  Future<List<double>> _getMoodByDateRange(
+    DateTime start,
+    DateTime end, {
+    DiaryDomain? domain,
+  }) async {
+    final diaries = await _isar.diarys
+        .where()
+        .showEqualTo(true)
+        .timeBetween(start, end)
+        .sortByTime()
+        .findAllAsync();
+
+    final moodByDay = <String, double>{};
+    for (final diary in diaries) {
+      if (!_matchDiaryDomain(diary, domain)) continue;
+      moodByDay.putIfAbsent(diary.yMd, () => diary.mood);
+    }
+    return moodByDay.values.toList();
+  }
+
+  Future<bool> _deleteADiary(int isarId) async {
+    return await _isar.writeAsync((isar) {
+      return isar.diarys.delete(isarId);
+    });
+  }
+
+  Future<List<Diary>> _getRecycleBinDiaries() async {
+    final diaries = await _isar.diarys
+        .where()
+        .showEqualTo(false)
+        .sortByTimeDesc()
+        .findAllAsync();
+    return diaries.map(_hydrateDiaryDomain).toList();
+  }
+
+  Future<void> _updateADiary({
+    Diary? oldDiary,
+    required Diary newDiary,
+  }) async {
+    _normalizeDiaryDomainTag(newDiary);
+    newDiary.lastModified = DateTime.now();
+    await _isar.writeAsync((isar) {
+      isar.diarys.put(newDiary);
+    });
+    if (oldDiary != null) {
+      await FileUtil.cleanUpOldMediaFiles(oldDiary, newDiary);
+      if (WebDavUtil().hasOption &&
+          PrefUtil.getValue<bool>(PrefKeys.autoSyncAfterChange) == true) {
+        unawaited(
+          WebDavUtil().updateSingleDiary(
+            oldDiary: oldDiary,
+            newDiary: newDiary,
+          ),
+        );
+      }
+    } else {
+      if (WebDavUtil().hasOption &&
+          PrefUtil.getValue<bool>(PrefKeys.autoSyncAfterChange) == true) {
+        unawaited(WebDavUtil().uploadSingleDiary(newDiary));
+      }
+    }
+  }
+
+  Future<List<Diary>> _searchDiaries({
+    required List<String> queryList,
+    DiaryDomain? domain,
+  }) async {
+    if (queryList.isEmpty) return [];
+
+    final HashSet<Diary> results = HashSet(
+      equals: (a, b) {
+        return a.isarId == b.isarId;
+      },
+      hashCode: (e) {
+        return e.isarId;
+      },
+    );
+
+    for (final word in queryList) {
+      final matches = await _isar.diarys
+          .where()
+          .showEqualTo(true)
+          .tokenizerElementMatches(word, caseSensitive: false)
+          .or()
+          .titleContains(word, caseSensitive: false)
+          .findAllAsync();
+      results.addAll(matches);
+    }
+
+    final List<Diary> sortedResults =
+        results
+            .where((diary) => _matchDiaryDomain(diary, domain))
+            .map(_hydrateDiaryDomain)
+            .toList()
+          ..sort((a, b) => b.time.compareTo(a.time));
+
+    return sortedResults;
+  }
+
+  Future<List<Diary>> _searchDiariesByTag(
+    String value, {
+    DiaryDomain? domain,
+  }) async {
+    final diaries = await _isar.diarys
+        .where()
+        .showEqualTo(true)
+        .tagsElementContains(value)
+        .findAllAsync();
+    return diaries
+        .where((diary) => _matchDiaryDomain(diary, domain))
+        .map(_hydrateDiaryDomain)
+        .toList();
+  }
+
+  Future<int> _countShowDiary() async {
+    return await _isar.diarys.where().showEqualTo(true).countAsync();
+  }
+
+  int _countAllDiary() {
+    return _isar.diarys.count();
+  }
+
+  int _countCategories({DiaryDomain? domain}) {
+    if (domain == null) return _isar.categorys.count();
+    return _isar.categorys
+        .where()
+        .findAll()
+        .where((category) => _matchCategoryDomain(category, domain))
+        .length;
+  }
+
+  Category? _getCategoryName(String id) {
+    return _isar.categorys.get(id);
+  }
+
+  Future<bool> _insertACategory(
+    Category category, {
+    DiaryDomain domain = DiaryDomain.normal,
+  }) async {
+    return await _isar.writeAsync((isar) {
+      Category? existingCategory;
+      for (final element in isar.categorys.where().findAll()) {
+        if (element.categoryName == category.categoryName &&
+            _matchCategoryDomain(element, domain)) {
+          existingCategory = element;
+          break;
+        }
+      }
+      if (existingCategory != null) {
+        category.categoryName =
+            '${category.categoryName}_${const Uuid().v4().substring(0, 4)}';
+      }
+      category.id = domain == DiaryDomain.memoir
+          ? 'memoir_${const Uuid().v7()}'
+          : const Uuid().v7();
+      category.domain = domain.value;
+      isar.categorys.put(category);
+      return existingCategory == null;
+    });
+  }
+
+  Future<bool> _updateACategory(Category category) async {
+    return await _isar.writeAsync((isar) {
+      final domain = _isMemoirCategory(category)
+          ? DiaryDomain.memoir
+          : DiaryDomain.normal;
+      category.domain = domain.value;
+      String? oldCategoryId;
+      if (domain == DiaryDomain.memoir && !category.id.startsWith('memoir_')) {
+        oldCategoryId = category.id;
+        category.id = 'memoir_${category.id}';
+      }
+      Category? existingCategory;
+      for (final element in isar.categorys.where().findAll()) {
+        if (element.id != category.id &&
+            element.categoryName == category.categoryName &&
+            _matchCategoryDomain(element, domain)) {
+          existingCategory = element;
+          break;
+        }
+      }
+      if (existingCategory != null && existingCategory.id != category.id) {
+        category.categoryName =
+            '${category.categoryName}_${const Uuid().v4().substring(0, 4)}';
+      }
+      isar.categorys.put(category);
+      if (oldCategoryId != null) {
+        final diaries = isar.diarys
+            .where()
+            .categoryIdEqualTo(oldCategoryId)
+            .findAll();
+        for (final diary in diaries) {
+          diary.categoryId = category.id;
+          _normalizeDiaryDomainTag(diary);
+        }
+        if (diaries.isNotEmpty) {
+          isar.diarys.putAll(diaries);
+        }
+        isar.categorys.delete(oldCategoryId);
+      }
+      return existingCategory == null;
+    });
+  }
+
+  Future<bool> _deleteACategory(String id) async {
+    return await _isar.writeAsync((isar) {
+      if (isar.diarys.where().categoryIdEqualTo(id).isEmpty()) {
+        return isar.categorys.delete(id);
+      } else {
+        return false;
+      }
+    });
+  }
+
+  Future<List<String>> _getContentList({DiaryDomain? domain}) async {
+    final diaries = await _isar.diarys.where().showEqualTo(true).findAllAsync();
+    return diaries
+        .where((diary) => _matchDiaryDomain(diary, domain))
+        .map((diary) => diary.contentText)
+        .toList();
+  }
+
+  List<Category> _getAllCategory({
+    DiaryDomain domain = DiaryDomain.normal,
+  }) {
+    final list = _isar.categorys
+        .where()
+        .domainEqualTo(domain.value)
+        .findAll()
+        .map(_hydrateCategoryDomain)
+        .toList();
+    list.sort((a, b) => a.id.compareTo(b.id));
+    return list;
+  }
+
+  Future<List<Category>> _getAllCategoryAsync({
+    DiaryDomain domain = DiaryDomain.normal,
+  }) async {
+    final list = await _isar.categorys
+        .where()
+        .domainEqualTo(domain.value)
+        .findAllAsync();
+    final result = list.map(_hydrateCategoryDomain).toList();
+    result.sort((a, b) => a.id.compareTo(b.id));
+    return result;
+  }
+
+  Future<List<Diary>> _getDiaryByCategory(
+    String? categoryId,
+    int offset,
+    int limit, {
+    DiaryDomain domain = DiaryDomain.normal,
+  }) async {
+    final List<Diary> raw;
+    if (categoryId != null) {
+      raw = await _isar.diarys
+          .where()
+          .categoryIdEqualTo(categoryId)
+          .findAllAsync();
+    } else {
+      raw = await _isar.diarys.where().showEqualTo(true).findAllAsync();
+    }
+
+    final filtered =
+        raw
+            .where((diary) {
+              if (categoryId != null && !diary.show) return false;
+              return _matchDiaryDomain(diary, domain);
+            })
+            .map(_hydrateDiaryDomain)
+            .toList()
+          ..sort((a, b) => b.time.compareTo(a.time));
+
+    final safeOffset = offset.clamp(0, filtered.length);
+    final end = (safeOffset + limit).clamp(0, filtered.length);
+    return filtered.sublist(safeOffset, end);
+  }
+
+  Future<List<Diary>> _getDiaryByDay(DateTime time) async {
+    final diaries = await _isar.diarys
+        .where()
+        .showEqualTo(true)
+        .yMdEqualTo(
+          '${time.year.toString()}/${time.month.toString()}/${time.day.toString()}',
+        )
+        .sortByTimeDesc()
+        .findAllAsync();
+    return diaries.map(_hydrateDiaryDomain).toList();
+  }
+
+  Future<List<Diary>> _getDiary(int offset, int limit) async {
+    final diaries = await _isar.diarys.where().findAllAsync(
+      offset: offset,
+      limit: limit,
+    );
+    return diaries.map(_hydrateDiaryDomain).toList();
+  }
+
+  /// v2.7.4 版本变更
+  Future<void> mergeToV2_7_4(String dir) async {
+    final countDiary = _isar.diarys.where().count();
+    for (var i = 0; i < countDiary; i += 50) {
+      final diaries = await _isar.diarys.where().findAllAsync(
+        offset: i,
+        limit: 50,
+      );
+      for (final diary in diaries) {
+        final newContent = diary.contentText.removeLineBreaks();
+        diary.tokenizer = await JiebaRs.cutAll(text: newContent);
+        final keywords = await JiebaRs.extractKeywordsTfidf(
+          text: newContent,
+          topK: BigInt.from(5),
+          allowedPos: [],
+        );
+        final sortByWeight = keywords
+          ..sort((a, b) => b.weight.compareTo(a.weight));
+        final sortedKeywords = sortByWeight.map((e) => e.keyword).toList();
+        diary.keywords = sortedKeywords;
+        diary.contentText = newContent;
+        await _isar.writeAsync((isar) {
+          isar.diarys.put(diary);
+        });
+      }
+    }
+  }
+
+  Future<void> _migrateDomainField() async {
+    final diaryCount = _isar.diarys.where().count();
+    for (var i = 0; i < diaryCount; i += 50) {
+      final batch = await _isar.diarys.where().findAllAsync(
+        offset: i,
+        limit: 50,
+      );
+      await _isar.writeAsync((isar) {
+        for (final diary in batch) {
+          final isMemoir = _isMemoirDiary(diary);
+          diary.domain = (isMemoir ? DiaryDomain.memoir : DiaryDomain.normal).value;
+          isar.diarys.put(diary);
+        }
+      });
+    }
+    final categoryCount = _isar.categorys.count();
+    for (var i = 0; i < categoryCount; i += 50) {
+      final batch = _isar.categorys.where().findAll(offset: i, limit: 50);
+      await _isar.writeAsync((isar) {
+        for (final category in batch) {
+          final isMemoir = _isMemoirCategory(category);
+          category.domain = (isMemoir ? DiaryDomain.memoir : DiaryDomain.normal).value;
+          isar.categorys.put(category);
+        }
+      });
+    }
+  }
+
+  Future<List<DiaryMapItem>> _getAllMapItem() async {
+    final List<DiaryMapItem> res = [];
     final diaries = await _isar.diarys
         .where()
         .showEqualTo(true)
@@ -781,52 +786,40 @@ class IsarUtil {
     return res;
   }
 
-  // 添加sync任务
-  static Future<void> addSyncRecord(SyncRecord record) async {
+  Future<void> _addSyncRecord(SyncRecord record) async {
     await _isar.writeAsync((isar) {
       isar.syncRecords.put(record);
     });
   }
 
-  // 获取sync任务
-  static Future<List<SyncRecord>> getSyncRecords() async {
+  Future<List<SyncRecord>> _getSyncRecords() async {
     return await _isar.syncRecords.where().findAllAsync();
   }
 
-  // 删除sync任务
-  static Future<void> deleteSyncRecord(int id) async {
+  Future<void> _deleteSyncRecord(int id) async {
     await _isar.writeAsync((isar) {
       isar.syncRecords.delete(id);
     });
   }
 
-  static Future<List<Font>> getAllFonts() async {
+  Future<List<Font>> _getAllFonts() async {
     return await _isar.fonts.where().findAllAsync();
   }
 
-  static Future<void> mergeToV2_7_3(Map<String, dynamic> parma) async {
-    final isar = Isar.open(schemas: _schemas, directory: parma['database']!);
-
-    await isar.writeAsync((isar) {
-      isar.fonts.clear();
-      isar.fonts.putAll(parma['fonts']);
-    });
-  }
-
-  static Future<void> insertAFont(Font font) async {
+  Future<void> _insertAFont(Font font) async {
     await _isar.writeAsync((isar) {
       isar.fonts.put(font);
     });
   }
 
-  static Future<Font?> getFontByFontFamily(String fontFamily) async {
+  Future<Font?> _getFontByFontFamily(String fontFamily) async {
     return await _isar.fonts
         .where()
         .fontFamilyEqualTo(fontFamily)
         .findFirstAsync();
   }
 
-  static Future<bool> deleteFont(int id) async {
+  Future<bool> _deleteFont(int id) async {
     return await _isar.writeAsync((isar) {
       return isar.fonts.delete(id);
     });

@@ -15,9 +15,16 @@ import 'package:path_provider/path_provider.dart';
 import 'package:moodiary/common/values/pref_keys.dart';
 
 class FileUtil {
-  static final String _filePath = PrefUtil.getValue<String>(PrefKeys.supportPath)!;
+  late final String _filePath;
+  late final String _cachePath;
 
-  static final String _cachePath = PrefUtil.getValue<String>(PrefKeys.cachePath)!;
+  FileUtil() {
+    _filePath = PrefUtil.getValue<String>(PrefKeys.supportPath)!;
+    _cachePath = PrefUtil.getValue<String>(PrefKeys.cachePath)!;
+  }
+
+  // ---- 门面 ----
+  static FileUtil get _i => Get.find<FileUtil>();
 
   // 删除文件
   static Future<bool> deleteFile(String path) async {
@@ -33,11 +40,11 @@ class FileUtil {
 
   static String getErrorLogFilePath() {
     //打开文件
-    return join(_filePath, 'error.log');
+    return join(_i._filePath, 'error.log');
   }
 
   static String getLocalSyncStateFilePath() {
-    return join(_filePath, 'local_sync_state.json');
+    return join(_i._filePath, 'local_sync_state.json');
   }
 
   //删除指定文件夹
@@ -49,12 +56,13 @@ class FileUtil {
   }
 
   static Future<void> initCreateDir() async {
+    final fp = _i._filePath;
     await Future.wait([
-      createDir(join(_filePath, 'database')),
-      createDir(join(_filePath, 'image')),
-      createDir(join(_filePath, 'audio')),
-      createDir(join(_filePath, 'video')),
-      createDir(join(_filePath, 'font')),
+      createDir(join(fp, 'database')),
+      createDir(join(fp, 'image')),
+      createDir(join(fp, 'audio')),
+      createDir(join(fp, 'video')),
+      createDir(join(fp, 'font')),
     ]);
   }
 
@@ -171,38 +179,40 @@ class FileUtil {
 
   //导入文件
   static Future<void> extractFile(String path) async {
+    final fp = _i._filePath;
+    final cp = _i._cachePath;
     final inputStream = InputFileStream(path);
     //删除图片文件夹
-    await deleteDir(join(_filePath, 'image'));
+    await deleteDir(join(fp, 'image'));
     //删除音频文件夹
-    await deleteDir(join(_filePath, 'audio'));
+    await deleteDir(join(fp, 'audio'));
     //删除视频文件夹
-    await deleteDir(join(_filePath, 'video'));
+    await deleteDir(join(fp, 'video'));
     //重新创建图片文件夹
-    await createDir(join(_filePath, 'image'));
+    await createDir(join(fp, 'image'));
     //重新创建音频文件夹
-    await createDir(join(_filePath, 'audio'));
+    await createDir(join(fp, 'audio'));
     //重新创建视频文件夹
-    await createDir(join(_filePath, 'video'));
+    await createDir(join(fp, 'video'));
     //删除字体文件夹
-    await deleteDir(join(_filePath, 'font'));
+    await deleteDir(join(fp, 'font'));
     //重新创建字体文件夹
-    await createDir(join(_filePath, 'font'));
+    await createDir(join(fp, 'font'));
     final archive = ZipDecoder().decodeStream(inputStream);
     for (final file in archive.files) {
       //如果是数据库
       if (file.name.endsWith('.isar')) {
-        final outputStream = OutputFileStream(join(_cachePath, 'old.isar'));
+        final outputStream = OutputFileStream(join(cp, 'old.isar'));
         file.writeContent(outputStream);
       } else {
-        final outputStream = OutputFileStream(join(_filePath, file.name));
+        final outputStream = OutputFileStream(join(fp, file.name));
         file.writeContent(outputStream);
       }
     }
     //删除本地同步状态文件，以重新全量对比
     await deleteFile(getLocalSyncStateFilePath());
     //复制数据库
-    await IsarUtil.dataMigration(_cachePath);
+    await IsarUtil.dataMigration(cp);
   }
 
   /// 将视频文件名（格式 "video-{uuid}.ext"）转换为对应缩略图文件名
@@ -218,14 +228,14 @@ class FileUtil {
 
   static String getRealPath(String fileType, String fileName) {
     if (fileType == 'thumbnail') {
-      return join(_filePath, 'video', videoNameToThumbnailName(fileName));
+      return join(_i._filePath, 'video', videoNameToThumbnailName(fileName));
     }
-    return join(_filePath, fileType, fileName);
+    return join(_i._filePath, fileType, fileName);
   }
 
   // 媒体库
   static Future<List<String>> getDirFilePath(String fileType) async {
-    final path = join(_filePath, fileType);
+    final path = join(_i._filePath, fileType);
     final List<String> filePaths = [];
     final Directory directory = Directory(path);
     if (await directory.exists()) {
@@ -239,7 +249,7 @@ class FileUtil {
   }
 
   static Future<List<String>> getDirFileName(String fileType) async {
-    final path = join(_filePath, fileType);
+    final path = join(_i._filePath, fileType);
     final List<String> fileNames = [];
     final Directory directory = Directory(path);
     if (await directory.exists()) {
@@ -266,11 +276,11 @@ class FileUtil {
   }
 
   static String getCachePath(String fileName) {
-    return join(_cachePath, fileName);
+    return join(_i._cachePath, fileName);
   }
 
   static String getErrorLogPath() {
-    return join(_filePath, 'error.log');
+    return join(_i._filePath, 'error.log');
   }
 
   static Future<void> cleanUpOldMediaFiles(

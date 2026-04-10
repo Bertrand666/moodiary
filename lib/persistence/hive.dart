@@ -3,12 +3,6 @@ import 'package:hive_ce_flutter/adapters.dart';
 import 'package:moodiary/utils/file_util.dart';
 
 class HiveUtil {
-  HiveUtil._();
-
-  static final HiveUtil _instance = HiveUtil._();
-
-  factory HiveUtil() => _instance;
-
   late LazyBox<bool> _imageCacheBox;
 
   late LazyBox<double> _imageAspectBox;

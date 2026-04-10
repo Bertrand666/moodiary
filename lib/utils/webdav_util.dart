@@ -35,11 +35,9 @@ class WebDavUtil {
     return [url, user, password];
   }
 
-  WebDavUtil._();
-
-  static final WebDavUtil _instance = WebDavUtil._();
-
-  factory WebDavUtil() => _instance;
+  // 通过 GetX 注入，WebDavUtil() 返回已注册的实例
+  factory WebDavUtil() => Get.find<WebDavUtil>();
+  WebDavUtil.create();
 
   Future<void> initWebDav() async {
     // 将旧版本 SharedPreferences 中的明文凭据自动迁移到 SecureStorage
