@@ -6,6 +6,7 @@ import 'package:unicons/unicons.dart';
 enum HomeTab {
   diary,
   memoir,
+  note,
   calendar,
   media,
   setting;
@@ -22,6 +23,7 @@ enum HomeTab {
   static const List<HomeTab> defaultTabs = [
     HomeTab.diary,
     HomeTab.memoir,
+    HomeTab.note,
     HomeTab.calendar,
     HomeTab.media,
     HomeTab.setting,
@@ -34,6 +36,8 @@ enum HomeTab {
         return Icons.article_outlined;
       case HomeTab.memoir:
         return Icons.auto_stories_outlined;
+      case HomeTab.note:
+        return Icons.edit_note_outlined;
       case HomeTab.calendar:
         return UniconsLine.calender;
       case HomeTab.media:
@@ -50,6 +54,8 @@ enum HomeTab {
         return Icons.article;
       case HomeTab.memoir:
         return Icons.auto_stories;
+      case HomeTab.note:
+        return Icons.edit_note;
       case HomeTab.calendar:
         return UniconsSolid.calender;
       case HomeTab.media:
@@ -60,7 +66,8 @@ enum HomeTab {
   }
 
   /// 是否为日记类（用于控制 FAB 显示）
-  bool get isDiaryType => this == HomeTab.diary || this == HomeTab.memoir;
+  bool get isDiaryType =>
+      this == HomeTab.diary || this == HomeTab.memoir;
 
   /// 对应的 DiaryDomain（仅日记类有效）
   bool get isMemoir => this == HomeTab.memoir;
@@ -72,6 +79,8 @@ enum HomeTab {
         return context.l10n.homeNavigatorDiary;
       case HomeTab.memoir:
         return context.l10n.homeNavigatorMemoir;
+      case HomeTab.note:
+        return '随手记';
       case HomeTab.calendar:
         return context.l10n.homeNavigatorCalendar;
       case HomeTab.media:

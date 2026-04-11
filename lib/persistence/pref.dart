@@ -193,11 +193,17 @@ class PrefUtil {
     await _prefs.setStringList(
       PrefKeys.activeTabs,
       _prefs.getStringList(PrefKeys.activeTabs) ??
-          ['diary', 'memoir', 'calendar', 'media', 'setting'],
+          ['diary', 'memoir', 'note', 'calendar', 'media', 'setting'],
     );
+    int? viewMode;
+    try {
+      viewMode = _prefs.getInt(PrefKeys.homeViewMode);
+    } catch (e) {
+      await _prefs.remove(PrefKeys.homeViewMode);
+    }
     await _prefs.setInt(
       PrefKeys.homeViewMode,
-      _prefs.getInt(PrefKeys.homeViewMode) ?? ViewModeType.list.number,
+      viewMode ?? ViewModeType.list.number,
     );
     await _prefs.setBool(PrefKeys.autoWeather, _prefs.getBool(PrefKeys.autoWeather) ?? false);
     await _prefs.setBool(

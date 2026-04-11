@@ -2363,6 +2363,19 @@ mod io {
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Zip>>::decrement_strong_count(ptr as _);
     }
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_moodiary_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerKeyword(
+        ptr: *const std::ffi::c_void,
+    ) {
+        frbgen_moodiary_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerJiebaKeyword(ptr);
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_moodiary_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerKeyword(
+        ptr: *const std::ffi::c_void,
+    ) {
+        frbgen_moodiary_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerJiebaKeyword(ptr);
+    }
 }
 #[cfg(not(target_family = "wasm"))]
 pub use io::*;

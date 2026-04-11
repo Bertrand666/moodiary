@@ -52,8 +52,14 @@ class _DiaryRenderState extends State<DiaryRender> {
   @override
   void initState() {
     if (diary.type != DiaryType.markdown.value) {
+      Document quillDoc;
+      try {
+        quillDoc = Document.fromJson(jsonDecode(diary.content));
+      } catch (_) {
+        quillDoc = Document()..insert(0, diary.content);
+      }
       _quillController = QuillController(
-        document: Document.fromJson(jsonDecode(diary.content)),
+        document: quillDoc,
         readOnly: true,
         selection: const TextSelection.collapsed(offset: 0),
       );
@@ -72,9 +78,13 @@ class _DiaryRenderState extends State<DiaryRender> {
     if (oldWidget.diary != diary ||
         oldWidget.customColorScheme != widget.customColorScheme) {
       if (diary.type != DiaryType.markdown.value) {
-        _quillController?.document = Document.fromJson(
-          jsonDecode(diary.content),
-        );
+        Document quillDoc;
+        try {
+          quillDoc = Document.fromJson(jsonDecode(diary.content));
+        } catch (_) {
+          quillDoc = Document()..insert(0, diary.content);
+        }
+        _quillController?.document = quillDoc;
       }
     }
     super.didUpdateWidget(oldWidget);

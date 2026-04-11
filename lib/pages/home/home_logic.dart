@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -11,6 +12,8 @@ import 'package:moodiary/pages/home/diary/diary_logic.dart';
 import 'package:moodiary/persistence/pref.dart';
 import 'package:moodiary/router/app_routes.dart';
 import 'package:moodiary/common/values/pref_keys.dart';
+import 'package:moodiary/persistence/isar.dart';
+import 'package:moodiary/src/rust/api/jieba.dart';
 
 class HomeLogic extends GetxController with GetTickerProviderStateMixin {
   RxBool isFabExpanded = false.obs;
@@ -82,6 +85,18 @@ class HomeLogic extends GetxController with GetTickerProviderStateMixin {
         }
       },
     );
+
+    // 一次性数据迁移/兼容：为早期没有填充 tokenizer 的随手记补充该字段，让搜索能够命中历史数据
+    // 放在此处保证应用启动/热重启时必然执行
+    unawaited(() async {
+      final allDiaries = await IsarUtil.getAllDiariesSorted();
+      for (var diary in allDiaries) {
+        if (diary.tokenizer.isEmpty && diary.contentText.isNotEmpty) {
+          diary.tokenizer = await JiebaRs.cutAll(text: diary.contentText);
+          await IsarUtil.updateADiary(oldDiary: diary, newDiary: diary);
+        }
+      }
+    }());
 
     super.onReady();
   }

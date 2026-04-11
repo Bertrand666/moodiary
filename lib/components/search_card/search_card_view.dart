@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/common/models/isar/diary.dart';
 import 'package:moodiary/common/values/border.dart';
+import 'package:moodiary/common/values/diary_domain.dart';
 import 'package:moodiary/components/base/text.dart';
 import 'package:moodiary/pages/diary_details/diary_details_logic.dart';
 import 'package:moodiary/router/app_routes.dart';
@@ -66,11 +67,21 @@ class SearchCardComponent extends StatelessWidget {
     final title = diary.title.removeLineBreaks();
     return InkWell(
       onTap: () async {
-        Bind.lazyPut(() => DiaryDetailsLogic(), tag: diary.id);
-        await Get.toNamed(
-          AppRoutes.diaryPage,
-          arguments: [diary.clone(), false],
-        );
+        final domain = DiaryDomain.fromValue(diary.domain);
+        if (domain == DiaryDomain.note) {
+          // 随手记 → 传 Diary 对象进入编辑页
+          await Get.toNamed(
+            AppRoutes.editPage,
+            arguments: diary,
+          );
+        } else {
+          // 日记 / 回忆录 → 进入详情页
+          Bind.lazyPut(() => DiaryDetailsLogic(), tag: diary.id);
+          await Get.toNamed(
+            AppRoutes.diaryPage,
+            arguments: [diary.clone(), false],
+          );
+        }
       },
       child: Container(
         decoration: BoxDecoration(

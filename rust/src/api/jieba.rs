@@ -114,6 +114,7 @@ impl JiebaRs {
         Ok(Self::convert_keywords(keywords))
     }
 
+    #[frb(ignore)]
     fn convert_keywords(keywords: Vec<jieba_rs::Keyword>) -> Vec<JiebaKeyword> {
         keywords
             .into_iter()

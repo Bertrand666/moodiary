@@ -4,8 +4,7 @@ import 'package:moodiary/common/values/diary_domain.dart';
 import 'package:moodiary/common/values/view_mode.dart';
 import 'package:moodiary/components/base/clipper.dart';
 import 'package:moodiary/components/base/loading.dart';
-import 'package:moodiary/components/diary_card/grid_diary_card_view.dart';
-import 'package:moodiary/components/diary_card/list_diary_card_view.dart';
+import 'package:moodiary/components/diary_card/demo_unified_card.dart';
 import 'package:moodiary/l10n/l10n.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
@@ -65,7 +64,7 @@ class DiaryTabViewComponent extends StatelessWidget {
             crossAxisSpacing: 8.0,
           ),
           delegate: SliverChildBuilderDelegate((context, index) {
-            return GirdDiaryCardComponent(diary: state.diaryList[index]);
+            return DemoUnifiedCard(diary: state.diaryList[index]);
           }, childCount: state.diaryList.length),
         );
       }, key: const ValueKey('grid'));
@@ -75,8 +74,7 @@ class DiaryTabViewComponent extends StatelessWidget {
       return Obx(() {
         return SliverList.separated(
           itemBuilder: (context, index) {
-            return ListDiaryCardComponent(
-              tag: index.toString(),
+            return DemoUnifiedCard(
               diary: state.diaryList[index],
             );
           },
@@ -92,8 +90,9 @@ class DiaryTabViewComponent extends StatelessWidget {
       context,
     );
 
+    final bottomPadding = domain == DiaryDomain.note ? 88.0 : 8.0;
     return Padding(
-      padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+      padding: EdgeInsets.only(left: 8, right: 8, bottom: bottomPadding),
       child: ClipRRect(
         clipper: TopRRectClipper(
           topOffset: sliverHandle.layoutExtent ?? barHeight,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moodiary/common/values/diary_domain.dart';
 import 'package:moodiary/persistence/isar.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
@@ -97,5 +98,10 @@ class CalendarLogic extends GetxController {
     // 找到最晚的日期
     filteredDates.sort((a, b) => b.compareTo(a)); // 降序排序
     return filteredDates.first; // 返回第一个元素，即最晚的日期
+  }
+
+  /// 切换 domain 筛选
+  void setDomainFilter(DiaryDomain? domain) {
+    state.domainFilter.value = domain;
   }
 }

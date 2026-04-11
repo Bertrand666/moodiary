@@ -13,6 +13,7 @@ import 'package:moodiary/l10n/l10n.dart';
 import 'package:moodiary/pages/home/calendar/calendar_view.dart';
 import 'package:moodiary/pages/home/diary/diary_view.dart';
 import 'package:moodiary/pages/home/media/media_view.dart';
+import 'package:moodiary/pages/home/note/note_view.dart';
 import 'package:moodiary/pages/home/setting/setting_view.dart';
 
 import 'home_logic.dart';
@@ -27,6 +28,8 @@ class HomePage extends StatelessWidget {
         return const DiaryPage(domain: DiaryDomain.normal);
       case HomeTab.memoir:
         return const DiaryPage(domain: DiaryDomain.memoir);
+      case HomeTab.note:
+        return const NotePage();
       case HomeTab.calendar:
         return const CalendarPage();
       case HomeTab.media:

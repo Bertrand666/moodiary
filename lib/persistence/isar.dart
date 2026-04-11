@@ -239,11 +239,18 @@ class IsarUtil {
 
   bool _matchDiaryDomain(Diary diary, DiaryDomain? domain) {
     if (domain == null) return true;
+    // note domain 只匹配自身，不混入 normal/memoir
+    if (diary.domain == DiaryDomain.note.value) {
+      return domain == DiaryDomain.note;
+    }
     final isMemoir = _isMemoirDiary(diary);
+    if (domain == DiaryDomain.note) return false;
     return domain == DiaryDomain.memoir ? isMemoir : !isMemoir;
   }
 
   Diary _hydrateDiaryDomain(Diary diary) {
+    // note domain 不参与旧版推断逻辑
+    if (diary.domain == DiaryDomain.note.value) return diary;
     if (diary.domain == DiaryDomain.normal.value) {
       final inferredIsMemoir = _isMemoirDiary(diary);
       if (inferredIsMemoir) {

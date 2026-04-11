@@ -49,22 +49,7 @@ class SearchSheetComponent extends StatelessWidget {
                 ),
               ),
             ),
-            if (domain == DiaryDomain.memoir)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Obx(() {
-                    return FilterChip(
-                      label: Text(context.l10n.diarySearchOnlyChildhoodMemoir),
-                      selected: state.childhoodMemoirOnly.value,
-                      onSelected: (value) async {
-                        await logic.setChildhoodMemoirOnly(value);
-                      },
-                    );
-                  }),
-                ),
-              ),
+
             Obx(() {
               Widget child;
               if (state.isSearching.value && state.searchList.isEmpty) {

@@ -4,9 +4,11 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/common/values/border.dart';
 import 'package:moodiary/common/values/colors.dart';
+import 'package:moodiary/common/values/diary_domain.dart';
 import 'package:moodiary/components/base/loading.dart';
-import 'package:moodiary/components/diary_card/calendar_diary_card_view.dart';
+import 'package:moodiary/components/diary_card/demo_unified_card.dart';
 import 'package:moodiary/components/time_line/time_line_view.dart';
+import 'package:moodiary/l10n/l10n.dart';
 import 'package:moodiary/utils/array_util.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
@@ -15,17 +17,22 @@ import 'calendar_logic.dart';
 class CalendarPage extends StatelessWidget {
   const CalendarPage({super.key});
 
+  /// 根据 DiaryDomain 返回对应的时间线圆点颜色
+  Color _domainColor(DiaryDomain domain, ColorScheme cs) {
+    switch (domain) {
+      case DiaryDomain.normal:
+        return cs.primary;
+      case DiaryDomain.memoir:
+        return cs.tertiary;
+      case DiaryDomain.note:
+        return cs.secondary;
+    }
+  }
+
   /// 根据当天日记的数量配置颜色的范围，从0到1
-  /// 0为最小值，1为最大值
-  /// 当天日记篇数为0时，返回0
-  /// 当前日记篇数为5时，返回1，即最大值，保留两位小数
   double getDayColor({required int count}) {
-    if (count == 0) {
-      return 0;
-    }
-    if (count >= 5) {
-      return 1;
-    }
+    if (count == 0) return 0;
+    if (count >= 5) return 1;
     return count / 5;
   }
 
@@ -64,13 +71,11 @@ class CalendarPage extends StatelessWidget {
 
     final size = MediaQuery.sizeOf(context);
 
-    //生成日历选择器
+    // ── 日历选择器 ───────────────────────────────────────────────
     Widget buildDatePicker() {
       final dateWithDiaryList = <DateTime>[];
       final allDate = <DateTime>[];
-      // 获取有日记的日期，只需要年月日
       for (final diary in state.currentMonthDiaryList) {
-        // 如果不存在当前日期，则添加
         final time = diary.time;
         allDate.add(DateTime(time.year, time.month, time.day));
         if (!dateWithDiaryList.contains(
@@ -177,26 +182,105 @@ class CalendarPage extends StatelessWidget {
       );
     }
 
+    // ── 筛选芯片行 ───────────────────────────────────────────────
+    Widget buildFilterChips() {
+      return Obx(() {
+        final current = state.domainFilter.value;
+
+        final chips = <Widget>[
+          // 全部
+          FilterChip(
+            selected: current == null,
+            showCheckmark: false,
+            label: const Text('全部'),
+            avatar: current == null
+                ? null
+                : const Icon(Icons.apps_rounded, size: 14),
+            onSelected: (_) => logic.setDomainFilter(null),
+          ),
+          // 日记
+          FilterChip(
+            selected: current == DiaryDomain.normal,
+            showCheckmark: false,
+            selectedColor: context.theme.colorScheme.primaryContainer,
+            avatar: CircleAvatar(
+              radius: 5,
+              backgroundColor: context.theme.colorScheme.primary,
+            ),
+            label: Text(context.l10n.homeNavigatorDiary),
+            onSelected: (_) => logic.setDomainFilter(DiaryDomain.normal),
+          ),
+          // 回忆录
+          FilterChip(
+            selected: current == DiaryDomain.memoir,
+            showCheckmark: false,
+            selectedColor: context.theme.colorScheme.tertiaryContainer,
+            avatar: CircleAvatar(
+              radius: 5,
+              backgroundColor: context.theme.colorScheme.tertiary,
+            ),
+            label: Text(context.l10n.homeNavigatorMemoir),
+            onSelected: (_) => logic.setDomainFilter(DiaryDomain.memoir),
+          ),
+          // 随手记
+          FilterChip(
+            selected: current == DiaryDomain.note,
+            showCheckmark: false,
+            selectedColor: context.theme.colorScheme.secondaryContainer,
+            avatar: CircleAvatar(
+              radius: 5,
+              backgroundColor: context.theme.colorScheme.secondary,
+            ),
+            label: const Text('随手记'),
+            onSelected: (_) => logic.setDomainFilter(DiaryDomain.note),
+          ),
+        ];
+
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            spacing: 8,
+            children: chips,
+          ),
+        );
+      });
+    }
+
+    // ── 时间线条目 ───────────────────────────────────────────────
     Widget buildCardList() {
       return Obx(() {
+        final list = state.filteredList;
+        if (list.isEmpty) {
+          return Center(
+            key: const ValueKey('filtered-empty'),
+            child: FaIcon(
+              FontAwesomeIcons.boxOpen,
+              color: context.theme.colorScheme.onSurface,
+              size: 56,
+            ),
+          );
+        }
         return ScrollablePositionedList.builder(
           itemBuilder: (context, index) {
-            return TimeLineComponent(
-              actionColor:
-                  Color.lerp(
+            final diary = list[index];
+            final domain = DiaryDomain.fromValue(diary.domain);
+            final dotColor = state.domainFilter.value != null
+                // 单一筛选时退回情绪色
+                ? Color.lerp(
                     AppColor.emoColorList.first,
                     AppColor.emoColorList.last,
-                    state.currentMonthDiaryList[index].mood,
-                  )!,
+                    diary.mood,
+                  )!
+                : _domainColor(domain, context.theme.colorScheme);
+            return TimeLineComponent(
+              actionColor: dotColor,
               child: Padding(
                 padding: EdgeInsets.only(
                   top: index == 0 ? 0 : 4.0,
-                  bottom:
-                      index == state.currentMonthDiaryList.length - 1 ? 0 : 4.0,
+                  bottom: index == list.length - 1 ? 0 : 4.0,
                 ),
-                child: CalendarDiaryCardComponent(
-                  diary: state.currentMonthDiaryList[index],
-                ),
+                child: DemoUnifiedCard(diary: diary),
               ),
             );
           },
@@ -204,14 +288,12 @@ class CalendarPage extends StatelessWidget {
           itemPositionsListener: logic.itemPositionsListener,
           scrollOffsetController: logic.scrollOffsetController,
           scrollOffsetListener: logic.scrollOffsetListener,
-          itemCount: state.currentMonthDiaryList.length,
+          itemCount: list.length,
         );
       });
     }
 
-    final calendar = Obx(() {
-      return buildDatePicker();
-    });
+    final calendar = Obx(() => buildDatePicker());
 
     final diaryBody = ClipRRect(
       borderRadius: AppBorderRadius.mediumBorderRadius,
@@ -246,7 +328,15 @@ class CalendarPage extends StatelessWidget {
                     ? Row(
                       spacing: 8.0,
                       children: [
-                        Expanded(child: diaryBody),
+                        Expanded(
+                          child: Column(
+                            children: [
+                              buildFilterChips(),
+                              const SizedBox(height: 4),
+                              Expanded(child: diaryBody),
+                            ],
+                          ),
+                        ),
                         Align(
                           alignment: Alignment.topCenter,
                           child: SizedBox(width: 320, child: calendar),
@@ -254,8 +344,14 @@ class CalendarPage extends StatelessWidget {
                       ],
                     )
                     : Column(
-                      spacing: 8.0,
-                      children: [calendar, Expanded(child: diaryBody)],
+                      spacing: 0,
+                      children: [
+                        calendar,
+                        const SizedBox(height: 4),
+                        buildFilterChips(),
+                        const SizedBox(height: 4),
+                        Expanded(child: diaryBody),
+                      ],
                     ),
           ),
         );

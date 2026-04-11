@@ -1,6 +1,7 @@
 enum DiaryDomain {
   normal('normal'),
-  memoir('memoir');
+  memoir('memoir'),
+  note('note');
 
   final String value;
 

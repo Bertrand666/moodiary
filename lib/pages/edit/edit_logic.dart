@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -177,15 +177,20 @@ class EditLogic extends GetxController {
       switch (state.type) {
         case DiaryType.text:
         case DiaryType.richText:
+          // 随手记保存的是纯文本，兼容处理：先尝试 JSON 解析，失败则转为普通文本
+          final rawContent = await Kmp.replaceWithKmp(
+            text: state.originalDiary!.content,
+            replacements: replaceMap,
+          );
+          Document quillDoc;
+          try {
+            quillDoc = Document.fromJson(jsonDecode(rawContent));
+          } catch (_) {
+            // 纯文本内容，转换为 Quill delta 格式
+            quillDoc = Document()..insert(0, rawContent);
+          }
           quillController = QuillController(
-            document: Document.fromJson(
-              jsonDecode(
-                await Kmp.replaceWithKmp(
-                  text: state.originalDiary!.content,
-                  replacements: replaceMap,
-                ),
-              ),
-            ),
+            document: quillDoc,
             selection: const TextSelection.collapsed(offset: 0),
           );
         case DiaryType.markdown:
