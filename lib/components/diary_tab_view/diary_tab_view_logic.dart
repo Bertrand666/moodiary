@@ -12,10 +12,10 @@ class DiaryTabViewLogic extends GetxController {
 
   DiaryTabViewLogic({
     required DiaryDomain domain,
-    required String? categoryId,
+    required String? tagName,
   }) {
     state.domain = domain;
-    state.categoryId = categoryId;
+    state.tagName = tagName;
     diaryLogic = Bind.find<DiaryLogic>(tag: domain.logicTag);
   }
 
@@ -33,14 +33,14 @@ class DiaryTabViewLogic extends GetxController {
   Future<void> _getDiary() async {
     state.isFetching.value = true;
     try {
-      state.diaryList.value = await IsarUtil.getDiaryByCategory(
-        state.categoryId,
+      state.diaryList.value = await IsarUtil.getDiaryByTag(
+        state.tagName,
         0,
         state.initLen,
         domain: state.domain,
       );
     } catch (e, s) {
-      print('[DiaryTabViewLogic] _getDiary error (domain=${state.domain}, category=${state.categoryId}): $e\n$s');
+      print('[DiaryTabViewLogic] _getDiary error (domain=${state.domain}, tag=${state.tagName}): $e\n$s');
     } finally {
       state.isFetching.value = false;
     }
@@ -48,8 +48,8 @@ class DiaryTabViewLogic extends GetxController {
 
   Future<void> updateDiary() async {
     state.isFetching.value = true;
-    state.diaryList.value = await IsarUtil.getDiaryByCategory(
-      state.categoryId,
+    state.diaryList.value = await IsarUtil.getDiaryByTag(
+      state.tagName,
       0,
       state.initLen,
       domain: state.domain,
@@ -58,8 +58,8 @@ class DiaryTabViewLogic extends GetxController {
   }
 
   Future<void> paginationDiary() async {
-    state.diaryList.value += await IsarUtil.getDiaryByCategory(
-      state.categoryId,
+    state.diaryList.value += await IsarUtil.getDiaryByTag(
+      state.tagName,
       state.diaryList.length,
       state.pageLen,
       domain: state.domain,

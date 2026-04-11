@@ -90,14 +90,7 @@ class SettingPage extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             children: [
-              buildAFeatureButton(
-                icon: Icon(
-                  Icons.category_rounded,
-                  color: context.theme.colorScheme.secondary,
-                ),
-                text: context.l10n.settingFunctionCategoryManage,
-                onTap: logic.toCategoryManager,
-              ),
+
               buildAFeatureButton(
                 icon: FaIcon(
                   FontAwesomeIcons.squarePollVertical,

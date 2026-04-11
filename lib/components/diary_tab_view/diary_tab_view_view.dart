@@ -15,11 +15,11 @@ class DiaryTabViewComponent extends StatelessWidget {
   const DiaryTabViewComponent({
     super.key,
     required this.domain,
-    required this.categoryId,
+    required this.tagName,
   });
 
   final DiaryDomain domain;
-  final String? categoryId;
+  final String? tagName;
 
   Widget _buildPlaceholder(double height) {
     return SliverToBoxAdapter(
@@ -40,10 +40,10 @@ class DiaryTabViewComponent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final logicTag = domain.tabTag(categoryId);
+    final logicTag = domain.tabTag(tagName);
     final barHeight = 46 + kToolbarHeight + MediaQuery.paddingOf(context).top;
     final logic = Get.put(
-      DiaryTabViewLogic(domain: domain, categoryId: categoryId),
+      DiaryTabViewLogic(domain: domain, tagName: tagName),
       tag: logicTag,
     );
     final state = Bind.find<DiaryTabViewLogic>(tag: logicTag).state;

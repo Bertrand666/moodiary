@@ -35,7 +35,7 @@ class NotePage extends StatelessWidget {
                     minLines: 1,
                     style: context.textTheme.bodyMedium,
                     decoration: InputDecoration(
-                      hintText: '随手写点什么… 用 #标签 归类',
+                      hintText: '随手写点什么…',
                       hintStyle: context.textTheme.bodyMedium?.copyWith(
                         color: context.theme.colorScheme.onSurfaceVariant
                             .withValues(alpha: 0.5),

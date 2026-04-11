@@ -54,7 +54,8 @@ class IsarUtil {
   static Future<Diary?> getDiaryByID(int isarId) => _i._getDiaryByID(isarId);
   static Future<List<Diary>> getDiariesByDateRange(DateTime start, DateTime end, {bool all = true}) =>
       _i._getDiariesByDateRange(start, end, all: all);
-  static Future<List<Diary>> getAllDiaries() => _i._getAllDiaries();
+  static Future<List<Diary>> getAllDiaries({DiaryDomain? domain}) => _i._getAllDiaries(domain: domain);
+  static List<Diary> getAllDiariesSync({DiaryDomain? domain}) => _i._getAllDiariesSync(domain: domain);
   static Future<List<Diary>> getAllDiariesSorted() => _i._getAllDiariesSorted();
   static Future<List<List<String>>> getWeatherByDateRange(DateTime start, DateTime end, {DiaryDomain? domain}) =>
       _i._getWeatherByDateRange(start, end, domain: domain);
@@ -82,8 +83,8 @@ class IsarUtil {
       _i._getAllCategory(domain: domain);
   static Future<List<Category>> getAllCategoryAsync({DiaryDomain domain = DiaryDomain.normal}) =>
       _i._getAllCategoryAsync(domain: domain);
-  static Future<List<Diary>> getDiaryByCategory(String? categoryId, int offset, int limit, {DiaryDomain domain = DiaryDomain.normal}) =>
-      _i._getDiaryByCategory(categoryId, offset, limit, domain: domain);
+  static Future<List<Diary>> getDiaryByTag(String? tagName, int offset, int limit, {DiaryDomain domain = DiaryDomain.normal}) =>
+      _i._getDiaryByTag(tagName, offset, limit, domain: domain);
   static Future<List<Diary>> getDiaryByDay(DateTime time) => _i._getDiaryByDay(time);
   static Future<List<Diary>> getDiary(int offset, int limit) => _i._getDiary(offset, limit);
   static Future<void> migrateDomainField() => _i._migrateDomainField();
@@ -383,9 +384,16 @@ class IsarUtil {
     return diaries.map(_hydrateDiaryDomain).toList();
   }
 
-  Future<List<Diary>> _getAllDiaries() async {
+  Future<List<Diary>> _getAllDiaries({DiaryDomain? domain}) async {
     final diaries = await _isar.diarys.where().findAllAsync();
-    return diaries.map(_hydrateDiaryDomain).toList();
+    final filtered = diaries.where((diary) => _matchDiaryDomain(diary, domain));
+    return filtered.map(_hydrateDiaryDomain).toList();
+  }
+
+  List<Diary> _getAllDiariesSync({DiaryDomain? domain}) {
+    final diaries = _isar.diarys.where().findAll();
+    final filtered = diaries.where((diary) => _matchDiaryDomain(diary, domain));
+    return filtered.map(_hydrateDiaryDomain).toList();
   }
 
   Future<List<Diary>> _getAllDiariesSorted() async {
@@ -502,6 +510,8 @@ class IsarUtil {
           .tokenizerElementMatches(word, caseSensitive: false)
           .or()
           .titleContains(word, caseSensitive: false)
+          .or()
+          .tagsElementContains(word, caseSensitive: false)
           .findAllAsync();
       results.addAll(matches);
     }
@@ -664,17 +674,18 @@ class IsarUtil {
     return result;
   }
 
-  Future<List<Diary>> _getDiaryByCategory(
-    String? categoryId,
+  Future<List<Diary>> _getDiaryByTag(
+    String? tagName,
     int offset,
     int limit, {
     DiaryDomain domain = DiaryDomain.normal,
   }) async {
     final List<Diary> raw;
-    if (categoryId != null) {
+    if (tagName != null) {
       raw = await _isar.diarys
           .where()
-          .categoryIdEqualTo(categoryId)
+          .showEqualTo(true)
+          .tagsElementEqualTo(tagName)
           .findAllAsync();
     } else {
       raw = await _isar.diarys.where().showEqualTo(true).findAllAsync();
@@ -683,7 +694,6 @@ class IsarUtil {
     final filtered =
         raw
             .where((diary) {
-              if (categoryId != null && !diary.show) return false;
               return _matchDiaryDomain(diary, domain);
             })
             .map(_hydrateDiaryDomain)

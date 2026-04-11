@@ -5,13 +5,13 @@ import 'package:moodiary/common/values/diary_type.dart';
 class EditCreateArgs {
   final DiaryDomain domain;
   final DiaryType type;
-  final String? categoryId;
+  final String? tagName;
   final DiaryTemplate? template;
 
   const EditCreateArgs({
     required this.domain,
     required this.type,
-    this.categoryId,
+    this.tagName,
     this.template,
   });
 }

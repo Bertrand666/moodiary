@@ -12,8 +12,7 @@ import 'package:moodiary/pages/assistant/assistant_logic.dart';
 import 'package:moodiary/pages/assistant/assistant_view.dart';
 import 'package:moodiary/pages/backup_sync/backup_sync_logic.dart';
 import 'package:moodiary/pages/backup_sync/backup_sync_view.dart';
-import 'package:moodiary/pages/category_manager/category_manager_logic.dart';
-import 'package:moodiary/pages/category_manager/category_manager_view.dart';
+
 import 'package:moodiary/pages/diary_details/diary_details_view.dart';
 import 'package:moodiary/pages/diary_setting/diary_setting_logic.dart';
 import 'package:moodiary/pages/diary_setting/diary_setting_view.dart';
@@ -138,11 +137,7 @@ class AppPages {
       page: () => const UserPage(),
       binds: [Bind.lazyPut(fenix: true, () => UserLogic())],
     ),
-    MoodiaryGetPage(
-      name: AppRoutes.categoryManagerPage,
-      page: () => const CategoryManagerPage(),
-      binds: [Bind.lazyPut(fenix: true, () => CategoryManagerLogic())],
-    ),
+
     MoodiaryGetPage(
       name: AppRoutes.aboutPage,
       page: () => const AboutPage(),

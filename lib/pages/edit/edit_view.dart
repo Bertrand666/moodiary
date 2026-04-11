@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:auto_size_text_field/auto_size_text_field.dart';
@@ -16,7 +16,7 @@ import 'package:moodiary/common/values/diary_type.dart';
 import 'package:moodiary/components/base/button.dart';
 import 'package:moodiary/components/base/sheet.dart';
 import 'package:moodiary/components/base/tile/setting_tile.dart';
-import 'package:moodiary/components/category_add/category_add_view.dart';
+
 import 'package:moodiary/components/expand_button/expand_button_view.dart';
 import 'package:moodiary/components/lottie_modal/lottie_modal.dart';
 import 'package:moodiary/components/markdown_bar/markdown_bar.dart';
@@ -634,29 +634,7 @@ class EditPage extends StatelessWidget {
               );
             },
           ),
-          GetBuilder<EditLogic>(
-            id: 'CategoryName',
-            builder: (_) {
-              return AdaptiveListTile(
-                title: context.l10n.editCategory,
-                subtitle:
-                    state.categoryName.isNotEmpty
-                        ? Text(state.categoryName)
-                        : null,
-                trailing: IconButton.filledTonal(
-                  onPressed: () {
-                    showFloatingModalBottomSheet(
-                      context: context,
-                      builder: (context) {
-                        return const CategoryAddComponent();
-                      },
-                    );
-                  },
-                  icon: const Icon(Icons.category),
-                ),
-              );
-            },
-          ),
+
           GetBuilder<EditLogic>(
             id: 'Tag',
             builder: (_) {

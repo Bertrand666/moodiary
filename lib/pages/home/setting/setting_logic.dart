@@ -91,14 +91,6 @@ class SettingLogic extends GetxController {
     }
   }
 
-  Future<void> toCategoryManager() async {
-    HapticFeedback.selectionClick();
-    await Get.toNamed(
-      AppRoutes.categoryManagerPage,
-      arguments: DiaryDomain.normal,
-    );
-    Bind.find<DashboardLogic>().getCategoryCount();
-  }
 
   Future<void> changeBackendPrivacy(bool value) async {
     await PrefUtil.setValue<bool>(PrefKeys.backendPrivacy, value);

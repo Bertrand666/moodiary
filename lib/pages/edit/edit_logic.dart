@@ -130,7 +130,9 @@ class EditLogic extends GetxController {
       if (state.autoWeather) {
         unawaited(getPositionAndWeather(context: Get.context!));
       }
-      if (state.autoCategory) selectCategory(createArgs.categoryId);
+      if (state.autoCategory && createArgs.tagName != null) {
+        state.currentDiary.tags.add(createArgs.tagName!);
+      }
       _applyTemplate(createArgs.template);
     } else {
       //如果是编辑，将日记对象赋值
@@ -143,12 +145,7 @@ class EditLogic extends GetxController {
         (type) => type.value == state.originalDiary!.type,
       );
       state.currentDiary = state.originalDiary!.clone();
-      // 获取分类名称
-      if (state.originalDiary!.categoryId != null) {
-        state.categoryName = IsarUtil.getCategoryName(
-          state.originalDiary!.categoryId!,
-        )!.categoryName;
-      }
+
       // 初始化标题控制器
       titleTextEditingController.text = state.originalDiary!.title;
       // 待替换的字符串map
@@ -215,7 +212,7 @@ class EditLogic extends GetxController {
       return EditCreateArgs(
         domain: DiaryDomain.normal,
         type: args.first as DiaryType,
-        categoryId: args.length > 1 ? args[1] as String? : null,
+        tagName: args.length > 1 ? args[1] as String? : null,
       );
     }
 
@@ -506,7 +503,7 @@ class EditLogic extends GetxController {
       newDiary: state.currentDiary,
     );
     state.isNew
-        ? Get.back(result: state.currentDiary.categoryId ?? '')
+        ? Get.back(result: '')
         : Get.back(result: 'changed');
     if (!context.mounted) return;
     toast.success(
@@ -703,25 +700,6 @@ class EditLogic extends GetxController {
   void removeTag(index) {
     state.currentDiary.tags.removeAt(index);
     update(['Tag']);
-  }
-
-  void selectCategory(String? id) {
-    state.currentDiary.categoryId = id;
-    if (id == null) {
-      state.categoryName = '';
-    } else {
-      final category = IsarUtil.getCategoryName(id);
-      if (category != null) {
-        if (category.domain != state.currentDiary.domain) {
-          state.currentDiary.categoryId = null;
-          state.categoryName = '';
-          update(['CategoryName']);
-          return;
-        }
-        state.categoryName = category.categoryName;
-      }
-    }
-    update(['CategoryName']);
   }
 
   void renderMarkdown() {

@@ -1,4 +1,4 @@
-﻿import 'package:cross_file/cross_file.dart';
+import 'package:cross_file/cross_file.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/common/models/isar/diary.dart';
 import 'package:moodiary/common/values/diary_type.dart';
@@ -26,8 +26,6 @@ class EditState {
 
   String currentAudioName = '';
 
-  // 分类名称
-  String categoryName = '';
 
   //编辑还是新增
   bool isNew = true;

@@ -86,13 +86,33 @@ class HomeLogic extends GetxController with GetTickerProviderStateMixin {
       },
     );
 
-    // 一次性数据迁移/兼容：为早期没有填充 tokenizer 的随手记补充该字段，让搜索能够命中历史数据
-    // 放在此处保证应用启动/热重启时必然执行
+    // 一次性数据迁移/兼容：
+    // 1. 为早期没有填充 tokenizer 的随手记补充该字段
+    // 2. 将过时的 categoryId 实体平滑转换为普通 tag 存入 diary.tags，解除物理 category 依赖
     unawaited(() async {
       final allDiaries = await IsarUtil.getAllDiariesSorted();
       for (var diary in allDiaries) {
+        bool changed = false;
+        
+        // 分词补全
         if (diary.tokenizer.isEmpty && diary.contentText.isNotEmpty) {
           diary.tokenizer = await JiebaRs.cutAll(text: diary.contentText);
+          changed = true;
+        }
+
+        // Category -> Tag 转换
+        if (diary.categoryId != null) {
+          final category = IsarUtil.getCategoryName(diary.categoryId!);
+          if (category != null) {
+            if (!diary.tags.contains(category.categoryName)) {
+              diary.tags.add(category.categoryName);
+            }
+          }
+          diary.categoryId = null;
+          changed = true;
+        }
+
+        if (changed) {
           await IsarUtil.updateADiary(oldDiary: diary, newDiary: diary);
         }
       }
@@ -201,14 +221,13 @@ class HomeLogic extends GetxController with GetTickerProviderStateMixin {
         Bind.isRegistered<DiaryLogic>(tag: logicTag)
             ? Bind.find<DiaryLogic>(tag: logicTag)
             : null;
-    String? categoryId;
+    String? tagName;
     if (diaryLogic == null || diaryLogic.tabController.index == 0) {
-      categoryId = null;
+      tagName = null;
     } else {
-      categoryId = diaryLogic
+      tagName = diaryLogic
           .state
-          .categoryList[diaryLogic.tabController.index - 1]
-          .id;
+          .dynamicTags[diaryLogic.tabController.index - 1];
     }
 
     /// 需要注意，返回值为 '' 时才是没有选择分类，而返回值为 null 时，是没有进行操作直接返回
@@ -217,18 +236,14 @@ class HomeLogic extends GetxController with GetTickerProviderStateMixin {
       arguments: EditCreateArgs(
         domain: targetDomain,
         type: type,
-        categoryId: categoryId,
+        tagName: tagName,
         template: template,
       ),
     );
     _fabAnimationController.reset();
     isFabExpanded.value = false;
     if (res != null && diaryLogic != null) {
-      if (res == '') {
-        await diaryLogic.updateDiary(null);
-      } else {
-        await diaryLogic.updateDiary(res);
-      }
+      await diaryLogic.refreshAll();
     }
   }
 }

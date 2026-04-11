@@ -14,8 +14,7 @@ class DiaryTabViewState {
 
   //分页的个数
   int pageLen = 20;
-
-  late String? categoryId;
+  late String? tagName;
 
   DiaryTabViewState();
 }

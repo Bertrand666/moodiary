@@ -53,7 +53,7 @@ abstract class AppRoutes {
   static const diaryManagerPage = '/diaryManager';
 
   //分类管理
-  static const categoryManagerPage = '/categoryManager';
+
 
   //关于
   static const aboutPage = '/about';

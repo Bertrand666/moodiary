@@ -6,7 +6,7 @@ import 'package:moodiary/common/values/view_mode.dart';
 import 'package:moodiary/components/base/loading.dart';
 import 'package:moodiary/components/base/sheet.dart';
 import 'package:moodiary/components/base/text.dart';
-import 'package:moodiary/components/category_choice_sheet/category_choice_sheet_view.dart';
+
 import 'package:moodiary/components/diary_tab_view/diary_tab_view_view.dart';
 import 'package:moodiary/components/keepalive/keepalive.dart';
 import 'package:moodiary/components/scroll/fix_scroll.dart';
@@ -57,26 +57,15 @@ class DiaryPage extends StatelessWidget {
       );
       //根据分类生成分类Tab
       allTabs.addAll(
-        List.generate(state.categoryList.length, (index) {
+        List.generate(state.dynamicTags.length, (index) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Tab(text: state.categoryList[index].categoryName),
+            child: Tab(text: state.dynamicTags[index]),
           );
         }),
       );
       return Row(
         children: [
-          IconButton(
-            onPressed: () {
-              showFloatingModalBottomSheet(
-                context: context,
-                builder: (context) {
-                  return CategoryChoiceSheetComponent(domain: domain);
-                },
-              );
-            },
-            icon: const Icon(Icons.menu_open_rounded),
-          ),
           Expanded(
             child: TabBar(
               controller: logic.tabController,
@@ -107,11 +96,11 @@ class DiaryPage extends StatelessWidget {
     }
 
     // 单个页面
-    Widget buildDiaryView(int index, key, String? categoryId) {
+    Widget buildDiaryView(int index, key, String? tagName) {
       return KeepAliveWrapper(
         child: PrimaryScrollWrapper(
           key: key,
-          child: DiaryTabViewComponent(domain: domain, categoryId: categoryId),
+          child: DiaryTabViewComponent(domain: domain, tagName: tagName),
         ),
       );
     }
@@ -120,14 +109,14 @@ class DiaryPage extends StatelessWidget {
       final List<Widget> allViews = [];
       // 添加全部日记页面
       allViews.add(buildDiaryView(0, state.keyMap[domain.defaultTabTag], null));
-      // 添加分类日记页面
+      // 添加动态标签日记页面
       allViews.addAll(
-        List.generate(state.categoryList.length, (index) {
-          final categoryId = state.categoryList[index].id;
+        List.generate(state.dynamicTags.length, (index) {
+          final tagName = state.dynamicTags[index];
           return buildDiaryView(
             index + 1,
-            state.keyMap[domain.tabTag(categoryId)],
-            categoryId,
+            state.keyMap[domain.tabTag(tagName)],
+            tagName,
           );
         }),
       );
@@ -210,10 +199,17 @@ class DiaryPage extends StatelessWidget {
                 sliver: SliverAppBar(
                   title: domain == DiaryDomain.memoir
                       ? memoirHeader
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [title, hitokoto],
-                        ),
+                      : domain == DiaryDomain.note
+                          ? Text(
+                              '随手记',
+                              style: context.textTheme.titleLarge?.copyWith(
+                                color: context.theme.colorScheme.onSurface,
+                              ),
+                            )
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [title, hitokoto],
+                            ),
                   pinned: true,
                   actions: [
                     Obx(() {

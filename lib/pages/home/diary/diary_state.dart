@@ -7,6 +7,7 @@ import 'package:moodiary/components/scroll/fix_scroll.dart';
 import 'package:moodiary/persistence/isar.dart';
 import 'package:moodiary/persistence/pref.dart';
 import 'package:moodiary/common/values/pref_keys.dart';
+import 'package:moodiary/common/values/diary_template.dart';
 
 class DiaryState {
   final DiaryDomain domain;
@@ -17,8 +18,8 @@ class DiaryState {
   //自定义副标题名称，如果不为空则替代一言
   late RxString customSubTitleName;
 
-  //分类列表，用于tab显示
-  late List<Category> categoryList;
+  // 动态标签列表，用于 tab 显示 (提取该 domain 下最热门的前 N 个标签)
+  late List<String> dynamicTags;
 
   //分类列表对应的key map，key是列表id
   late Map<String, GlobalKey<PrimaryScrollWrapperState>> keyMap;
@@ -51,15 +52,22 @@ class DiaryState {
 
     currentTabBarIndex = 0;
 
-    //第一次获取分类，这里是同步方法，因为分类数量是可控的，所以应该不会有性能问题，但愿如此
-    categoryList = IsarUtil.getAllCategory(domain: domain);
+    // 初始化动态标签：同步读取所有日记并提取最常用的5个标签
+    final diaries = IsarUtil.getAllDiariesSync(domain: domain);
+    final tagCounts = <String, int>{};
+    for (var diary in diaries) {
+      for (var tag in diary.tags) {
+        if (tag == DiaryTemplateConst.memoirTag || tag == DiaryTemplateConst.legacyMemoirTag) continue;
+        tagCounts[tag] = (tagCounts[tag] ?? 0) + 1;
+      }
+    }
+    final sortedTags = tagCounts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    dynamicTags = sortedTags.take(5).map((e) => e.key).toList();
 
-    //默认分类
+    // 默认分类 key
     keyMap = {domain.defaultTabTag: GlobalKey<PrimaryScrollWrapperState>()};
-    //其他分类
-    for (final category in categoryList) {
-      keyMap[domain.tabTag(category.id)] =
-          GlobalKey<PrimaryScrollWrapperState>();
+    for (final tag in dynamicTags) {
+      keyMap[domain.tabTag(tag)] = GlobalKey<PrimaryScrollWrapperState>();
     }
   }
 }
