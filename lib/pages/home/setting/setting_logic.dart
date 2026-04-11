@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -135,6 +135,17 @@ class SettingLogic extends GetxController {
     state.customTitle = title.trim();
     update(['CustomTitle']);
     await PrefUtil.setValue<String>(PrefKeys.customTitleName, state.customTitle);
+    for (final domain in DiaryDomain.values) {
+      if (Bind.isRegistered<DiaryLogic>(tag: domain.logicTag)) {
+        Bind.find<DiaryLogic>(tag: domain.logicTag).updateTitle();
+      }
+    }
+  }
+
+  Future<void> setCustomSubTitle({required String title}) async {
+    state.customSubTitle = title.trim();
+    update(['CustomSubTitle']);
+    await PrefUtil.setValue<String>(PrefKeys.customSubTitleName, state.customSubTitle);
     for (final domain in DiaryDomain.values) {
       if (Bind.isRegistered<DiaryLogic>(tag: domain.logicTag)) {
         Bind.find<DiaryLogic>(tag: domain.logicTag).updateTitle();

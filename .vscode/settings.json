@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "E:/other_projects/moodiary/windows"
+    "cmake.sourceDirectory": "E:/other_projects/moodiary/windows",
+    "cmake.ignoreCMakeListsMissing": true
 }

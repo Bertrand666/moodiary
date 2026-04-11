@@ -1,9 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/common/values/diary_domain.dart';
 import 'package:moodiary/common/values/diary_template.dart';
 import 'package:moodiary/common/values/diary_type.dart';
+import 'package:moodiary/common/values/home_tabs.dart';
 import 'package:moodiary/components/frosted_glass_overlay/frosted_glass_overlay_logic.dart';
 import 'package:moodiary/pages/edit/edit_args.dart';
 import 'package:moodiary/pages/home/diary/diary_logic.dart';
@@ -19,6 +20,10 @@ class HomeLogic extends GetxController with GetTickerProviderStateMixin {
   RxBool shouldShow = true.obs;
 
   RxInt navigatorIndex = 0.obs;
+
+  /// 当前激活的 Tab 列表 — 先用一个同步快照初始化，onReady 中会再次更新
+  /// 注意：必须用 List.from() 包一层，不能直接对 const 列表调用 .obs
+  RxList<HomeTab> activeTabs = List<HomeTab>.from(HomeTab.defaultTabs).obs;
 
   late final GlobalKey bodyKey = GlobalKey();
   late final AnimationController _fabAnimationController = AnimationController(
@@ -46,11 +51,26 @@ class HomeLogic extends GetxController with GetTickerProviderStateMixin {
 
   late final AppLifecycleListener _appLifecycleListener;
 
-  DiaryDomain get currentDomain =>
-      navigatorIndex.value == 1 ? DiaryDomain.memoir : DiaryDomain.normal;
+  DiaryDomain get currentDomain {
+    final tab = activeTabs.elementAtOrNull(navigatorIndex.value);
+    return tab == HomeTab.memoir ? DiaryDomain.memoir : DiaryDomain.normal;
+  }
+
+  HomeTab? get currentTab => activeTabs.elementAtOrNull(navigatorIndex.value);
 
   @override
   void onReady() async {
+    // 加载 activeTabs 配置
+    final saved = PrefUtil.getValue<List<String>>(PrefKeys.activeTabs);
+    final tabs = (saved ?? HomeTab.defaultTabs.map((e) => e.key).toList())
+        .map(HomeTab.fromKey)
+        .whereType<HomeTab>()
+        .toList();
+    // 保底：setting 必须存在
+    if (!tabs.contains(HomeTab.setting)) tabs.add(HomeTab.setting);
+    activeTabs.assignAll(tabs);
+    _refreshShouldShow();
+
     _appLifecycleListener = AppLifecycleListener(
       onStateChange: (state) {
         if (state == AppLifecycleState.inactive) {
@@ -114,8 +134,32 @@ class HomeLogic extends GetxController with GetTickerProviderStateMixin {
 
   void changeNavigator(int index) {
     navigatorIndex.value = index;
-    shouldShow.value = index == 0 || index == 1;
+    _refreshShouldShow();
     pageController.jumpToPage(index);
+  }
+
+  void _refreshShouldShow() {
+    final tab = activeTabs.elementAtOrNull(navigatorIndex.value);
+    shouldShow.value = tab?.isDiaryType ?? false;
+  }
+
+  /// 更新激活 Tab 列表并持久化
+  Future<void> setActiveTabs(List<HomeTab> tabs) async {
+    // 保底：setting 必须存在
+    final safe = List<HomeTab>.from(tabs);
+    if (!safe.contains(HomeTab.setting)) safe.add(HomeTab.setting);
+    await PrefUtil.setValue<List<String>>(
+      PrefKeys.activeTabs,
+      safe.map((e) => e.key).toList(),
+    );
+    activeTabs.assignAll(safe);
+    // 确保当前索引不越界
+    if (navigatorIndex.value >= safe.length) {
+      changeNavigator(safe.length - 1);
+    } else {
+      _refreshShouldShow();
+    }
+    update(['ActiveTabs']);
   }
 
   Future<void> hideNavigatorBar() async {

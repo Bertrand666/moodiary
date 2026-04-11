@@ -1,4 +1,4 @@
-﻿import 'package:get/get.dart';
+import 'package:get/get.dart';
 import 'package:moodiary/common/values/language.dart';
 import 'package:moodiary/persistence/pref.dart';
 import 'package:moodiary/common/values/pref_keys.dart';
@@ -20,6 +20,8 @@ class SettingState {
   bool local = PrefUtil.getValue<bool>(PrefKeys.local)!;
 
   String customTitle = PrefUtil.getValue<String>(PrefKeys.customTitleName)!;
+
+  String customSubTitle = PrefUtil.getValue<String>(PrefKeys.customSubTitleName)!;
 
   RxBool backendPrivacy = PrefUtil.getValue<bool>(PrefKeys.backendPrivacy)!.obs;
 

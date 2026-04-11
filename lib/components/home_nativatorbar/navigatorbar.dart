@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moodiary/common/values/home_tabs.dart';
 import 'package:moodiary/components/base/modal.dart';
 import 'package:moodiary/l10n/l10n.dart';
-import 'package:unicons/unicons.dart';
 
 class HomeNavigatorBar extends StatelessWidget {
   static const double defaultNavigatorBarHeight = 56.0;
@@ -10,6 +10,8 @@ class HomeNavigatorBar extends StatelessWidget {
   final Animation<double> animation;
 
   final RxInt navigatorIndex;
+
+  final RxList<HomeTab> activeTabs;
 
   final Function(int) onTap;
 
@@ -19,6 +21,7 @@ class HomeNavigatorBar extends StatelessWidget {
     super.key,
     required this.animation,
     required this.navigatorIndex,
+    required this.activeTabs,
     required this.onTap,
     required this.modal,
   });
@@ -57,34 +60,14 @@ class HomeNavigatorBar extends StatelessWidget {
               children: [
                 Obx(() {
                   return NavigationBar(
-                    destinations: [
-                      NavigationDestination(
-                        icon: const Icon(Icons.article_outlined),
-                        label: context.l10n.homeNavigatorDiary,
-                        selectedIcon: const Icon(Icons.article),
-                      ),
-                      NavigationDestination(
-                        icon: const Icon(Icons.auto_stories_outlined),
-                        label: context.l10n.homeNavigatorMemoir,
-                        selectedIcon: const Icon(Icons.auto_stories),
-                      ),
-                      NavigationDestination(
-                        icon: const Icon(UniconsLine.calender),
-                        label: context.l10n.homeNavigatorCalendar,
-                        selectedIcon: const Icon(UniconsSolid.calender),
-                      ),
-                      NavigationDestination(
-                        icon: const Icon(UniconsLine.image_v),
-                        label: context.l10n.homeNavigatorMedia,
-                        selectedIcon: const Icon(UniconsSolid.image_v),
-                      ),
-                      NavigationDestination(
-                        icon: const Icon(UniconsLine.layer_group),
-                        label: context.l10n.homeNavigatorSetting,
-                        selectedIcon: const Icon(UniconsSolid.layer_group),
-                      ),
-                    ],
-                    selectedIndex: navigatorIndex.value,
+                    destinations: activeTabs.map((tab) {
+                      return NavigationDestination(
+                        icon: Icon(tab.outlinedIcon),
+                        label: tab.label(context),
+                        selectedIcon: Icon(tab.filledIcon),
+                      );
+                    }).toList(),
+                    selectedIndex: navigatorIndex.value.clamp(0, activeTabs.length - 1),
                     height: navigatorBarHeight,
                     onDestinationSelected: onTap,
                     backgroundColor: context.theme.colorScheme.surfaceContainer,

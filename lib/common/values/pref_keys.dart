@@ -96,6 +96,12 @@ class PrefKeys {
   /// 自定义首页标题名称
   static const String customTitleName = 'customTitleName';
 
+  /// 自定义首页副标题名称
+  static const String customSubTitleName = 'customSubTitleName';
+
+  /// 导航栏激活的 Tab 列表（顺序即排列顺序）
+  static const String activeTabs = 'activeTabs';
+
   /// 首页视图模式
   static const String homeViewMode = 'homeViewMode';
 

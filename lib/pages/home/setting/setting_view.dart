@@ -1,4 +1,4 @@
-﻿import 'package:adaptive_dialog/adaptive_dialog.dart';
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -19,6 +19,8 @@ import 'package:moodiary/components/set_password/set_password_view.dart';
 import 'package:moodiary/components/theme_mode_dialog/theme_mode_dialog_view.dart';
 import 'package:moodiary/l10n/l10n.dart';
 import 'package:moodiary/utils/notice_util.dart';
+
+import 'package:moodiary/components/nav_tabs_manager/nav_tabs_manager_sheet.dart';
 
 import 'setting_logic.dart';
 import 'package:moodiary/common/values/pref_keys.dart';
@@ -197,6 +199,17 @@ class SettingPage extends StatelessWidget {
                   },
                 ),
                 AdaptiveListTile(
+                  title: const Text('导航栏布局'),
+                  leading: const Icon(Icons.tab_rounded),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () {
+                    showFloatingModalBottomSheet(
+                      context: context,
+                      builder: (_) => const NavTabsManagerSheet(),
+                    );
+                  },
+                ),
+                AdaptiveListTile(
                   title: Text(context.l10n.settingThemeMode),
                   leading: const Icon(Icons.invert_colors_rounded),
                   trailing: Text(
@@ -248,7 +261,6 @@ class SettingPage extends StatelessWidget {
                 AdaptiveListTile(
                   title: Text(context.l10n.settingHomepageName),
                   leading: const Icon(Icons.drive_file_rename_outline_rounded),
-                  isLast: true,
                   trailing: GetBuilder<SettingLogic>(
                     id: 'CustomTitle',
                     builder: (_) {
@@ -270,6 +282,35 @@ class SettingPage extends StatelessWidget {
                     );
                     if (res != null) {
                       logic.setCustomTitle(title: res.first);
+                    }
+                  },
+                ),
+                AdaptiveListTile(
+                  title: const Text('首页副标题'),
+                  leading: const Icon(Icons.subtitles_outlined),
+                  isLast: true,
+                  trailing: GetBuilder<SettingLogic>(
+                    id: 'CustomSubTitle',
+                    builder: (_) {
+                      return Text(
+                        state.customSubTitle,
+                        style: context.textTheme.bodySmall!.copyWith(
+                          color: context.theme.colorScheme.primary,
+                        ),
+                      );
+                    },
+                  ),
+                  onTap: () async {
+                    final res = await showTextInputDialog(
+                        context: context,
+                        textFields: [
+                          DialogTextField(initialText: state.customSubTitle),
+                        ],
+                        title: '首页副标题',
+                        message: '留空将恢复随机显示「一言」句子',
+                    );
+                    if (res != null) {
+                      logic.setCustomSubTitle(title: res.first);
                     }
                   },
                 ),

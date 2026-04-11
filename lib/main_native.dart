@@ -22,6 +22,7 @@ import 'package:moodiary/persistence/pref.dart';
 import 'package:moodiary/router/app_pages.dart';
 import 'package:moodiary/router/app_routes.dart';
 import 'package:moodiary/src/rust/frb_generated.dart';
+import 'package:moodiary/merge/merge.dart';
 import 'package:moodiary/utils/log_util.dart';
 import 'package:moodiary/utils/file_util.dart';
 import 'package:moodiary/utils/media_util.dart';
@@ -34,17 +35,23 @@ Future<void> _initSystem() async {
 
   // 第 1 层：PrefUtil（无依赖，所有其他服务读取配置）
   final prefUtil = PrefUtil();
-  await prefUtil.initPref();
   Get.put<PrefUtil>(prefUtil, permanent: true);
+  final oldAppVersion = await prefUtil.initPref();
 
   // 第 2 层：FileUtil（依赖 PrefUtil 获取路径）
   final fileUtil = FileUtil();
   Get.put<FileUtil>(fileUtil, permanent: true);
+  await FileUtil.initCreateDir();
 
   // 第 3 层：IsarUtil（依赖 FileUtil 获取数据库目录）
   final isarUtil = IsarUtil();
   await isarUtil.initIsar();
   Get.put<IsarUtil>(isarUtil, permanent: true);
+
+  // 依赖各种 Util 的业务数据迁移逻辑
+  if (oldAppVersion != null) {
+    unawaited(MergeUtil.merge(lastAppVersion: oldAppVersion));
+  }
 
   // 第 3 层（并行）：HiveUtil（依赖 FileUtil 获取 Hive 目录）
   final hiveUtil = HiveUtil();

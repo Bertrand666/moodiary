@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moodiary/common/models/isar/category.dart';
 import 'package:moodiary/common/values/diary_domain.dart';
@@ -13,6 +13,9 @@ class DiaryState {
 
   //自定义标题名称，如果为空则为默认值
   late RxString customTitleName;
+
+  //自定义副标题名称，如果不为空则替代一言
+  late RxString customSubTitleName;
 
   //分类列表，用于tab显示
   late List<Category> categoryList;
@@ -42,6 +45,7 @@ class DiaryState {
 
   DiaryState({required this.domain}) {
     customTitleName = PrefUtil.getValue<String>(PrefKeys.customTitleName)!.obs;
+    customSubTitleName = PrefUtil.getValue<String>(PrefKeys.customSubTitleName)!.obs;
 
     nestedScrollKey = GlobalKey<NestedScrollViewState>();
 

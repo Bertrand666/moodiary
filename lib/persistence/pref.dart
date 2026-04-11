@@ -72,6 +72,10 @@ class PrefUtil {
     PrefKeys.supportBiometrics,
     //自定义首页名称
     PrefKeys.customTitleName,
+    //自定义首页副标题名称
+    PrefKeys.customSubTitleName,
+    //导航栏激活的 Tab 列表
+    PrefKeys.activeTabs,
     //首页视图模式
     PrefKeys.homeViewMode,
     //自动获取天气
@@ -110,7 +114,7 @@ class PrefUtil {
   static Future<void> removeValue(String key) => _i._removeValue(key);
 
   // ---- 实例方法（真正的实现） ----
-  Future<void> initPref() async {
+  Future<String?> initPref() async {
     _prefs = await SharedPreferencesWithCache.create(
       cacheOptions: const SharedPreferencesWithCacheOptions(
         allowList: allowList,
@@ -124,7 +128,7 @@ class PrefUtil {
     final packageInfo = await PackageUtil.getPackageInfo();
     final currentVersion = '${packageInfo.version}+${packageInfo.buildNumber}';
     final appVersion = _prefs.getString(PrefKeys.appVersion);
-    if (appVersion != null) MergeUtil.merge(lastAppVersion: appVersion);
+
     // 如果是首次启动或版本不一致
     if (kDebugMode ||
         firstStart ||
@@ -132,9 +136,9 @@ class PrefUtil {
         appVersion != currentVersion) {
       await _prefs.setString(PrefKeys.appVersion, currentVersion);
       await _setDefaultValues();
-      //初始化所需目录
-      await FileUtil.initCreateDir();
     }
+    
+    return appVersion;
   }
 
   // 设置默认值的方法
@@ -181,6 +185,15 @@ class PrefUtil {
     await _prefs.setString(
       PrefKeys.customTitleName,
       _prefs.getString(PrefKeys.customTitleName) ?? '',
+    );
+    await _prefs.setString(
+      PrefKeys.customSubTitleName,
+      _prefs.getString(PrefKeys.customSubTitleName) ?? '',
+    );
+    await _prefs.setStringList(
+      PrefKeys.activeTabs,
+      _prefs.getStringList(PrefKeys.activeTabs) ??
+          ['diary', 'memoir', 'calendar', 'media', 'setting'],
     );
     await _prefs.setInt(
       PrefKeys.homeViewMode,

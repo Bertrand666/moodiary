@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:moodiary/api/api.dart';
@@ -279,5 +279,6 @@ class DiaryLogic extends GetxController with GetTickerProviderStateMixin {
   // 更新标题
   void updateTitle() {
     state.customTitleName.value = PrefUtil.getValue<String>(PrefKeys.customTitleName)!;
+    state.customSubTitleName.value = PrefUtil.getValue<String>(PrefKeys.customSubTitleName)!;
   }
 }

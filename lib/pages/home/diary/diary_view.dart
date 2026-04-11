@@ -160,7 +160,9 @@ class DiaryPage extends StatelessWidget {
 
     final hitokoto = Obx(() {
       return AdaptiveText(
-        state.hitokoto.value,
+        state.customSubTitleName.value.isNotEmpty 
+            ? state.customSubTitleName.value 
+            : state.hitokoto.value,
         style: context.textTheme.labelSmall?.copyWith(
           color: context.theme.colorScheme.onSurfaceVariant,
         ),
@@ -182,7 +184,9 @@ class DiaryPage extends StatelessWidget {
             ),
           ),
           Text(
-            state.hitokoto.value,
+            state.customSubTitleName.value.isNotEmpty 
+                ? state.customSubTitleName.value 
+                : state.hitokoto.value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: context.textTheme.labelSmall?.copyWith(
